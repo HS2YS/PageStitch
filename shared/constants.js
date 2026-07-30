@@ -46,7 +46,8 @@ export const DEFAULT_SETTINGS = Object.freeze({
 
 export const MAX_CAPTURE_CALLS_PER_SECOND = 2;
 export const MIN_CAPTURE_INTERVAL_MS = 550;
-export const SEGMENT_HEIGHT_PX = 12000;
+export const SEGMENT_HEIGHT_PX = 6000;
+export const MAX_SEGMENT_CANVAS_AREA = 24_000_000;
 export const MAX_SINGLE_CANVAS_HEIGHT = 30000;
-export const MAX_SINGLE_CANVAS_AREA = 120_000_000;
+export const MAX_SINGLE_CANVAS_AREA = 24_000_000;
 export const MAX_CAPTURE_STEPS = 250;

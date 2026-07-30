@@ -1,6 +1,9 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { splitRangeAcrossSegments } from "../shared/segments.js";
+import {
+  maximumSegmentHeight,
+  splitRangeAcrossSegments
+} from "../shared/segments.js";
 
 test("splitRangeAcrossSegments keeps a frame inside one segment", () => {
   assert.deepEqual(splitRangeAcrossSegments(120, 920, 12000), [{
@@ -40,4 +43,10 @@ test("splitRangeAcrossSegments spans multiple complete segments", () => {
   const parts = splitRangeAcrossSegments(0, 25000, 12000);
   assert.deepEqual(parts.map((part) => part.length), [12000, 12000, 1000]);
   assert.deepEqual(parts.map((part) => part.index), [0, 1, 2]);
+});
+
+test("maximumSegmentHeight caps wide captures by pixel area", () => {
+  assert.equal(maximumSegmentHeight(1920, 6000, 24_000_000), 6000);
+  assert.equal(maximumSegmentHeight(7680, 6000, 24_000_000), 3125);
+  assert.equal(maximumSegmentHeight(0, 0, 0), 1);
 });

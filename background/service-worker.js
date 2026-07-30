@@ -65,6 +65,30 @@ function errorMessageForCode(error) {
     : (error?.message || chrome.i18n.getMessage("captureFailed"));
 }
 
+async function showActionError(error, tabId) {
+  if (!Number.isInteger(tabId)) return;
+  await chrome.action.setBadgeText({ tabId, text: "!" }).catch(() => {});
+  await chrome.action.setBadgeBackgroundColor({
+    tabId,
+    color: "#c73758"
+  }).catch(() => {});
+  await chrome.action.setTitle({
+    tabId,
+    title: errorMessageForCode(error)
+  }).catch(() => {});
+  setTimeout(() => {
+    const captureIsRunning =
+      activeCapture?.tabId === tabId &&
+      !["error", "cancelled", "complete"].includes(activeCapture.status);
+    if (captureIsRunning) return;
+    chrome.action.setBadgeText({ tabId, text: "" }).catch(() => {});
+    chrome.action.setTitle({
+      tabId,
+      title: chrome.i18n.getMessage("captureFullPage")
+    }).catch(() => {});
+  }, 5000);
+}
+
 async function setCaptureState(patch) {
   if (!activeCapture) return;
   Object.assign(activeCapture, patch);
@@ -127,7 +151,7 @@ async function sendTab(tabId, message) {
 }
 
 function assertCapturableTab(tab) {
-  if (!tab?.id || !tab.windowId) {
+  if (!Number.isInteger(tab?.id) || !Number.isInteger(tab?.windowId)) {
     const error = new Error("No active browser tab was found.");
     error.code = "NO_ACTIVE_TAB";
     throw error;
@@ -347,12 +371,25 @@ async function runCapture(capture, regionRequest = null) {
       await captureVisibleOrRegion(capture, regionRequest);
     }
   } catch (error) {
-    const serialized = makeSerializableError(error);
+    const serialized = capture.cancelled
+      ? { code: "CANCELLED", message: "Capture cancelled." }
+      : makeSerializableError(error);
     if (activeCapture?.id === capture.id) {
       await setCaptureState({
         status: serialized.code === "CANCELLED" ? "cancelled" : "error",
         error: serialized
       });
+      if (serialized.code !== "CANCELLED") {
+        await chrome.action.setBadgeText({ tabId: capture.tabId, text: "!" }).catch(() => {});
+        await chrome.action.setBadgeBackgroundColor({
+          tabId: capture.tabId,
+          color: "#c73758"
+        }).catch(() => {});
+        await chrome.action.setTitle({
+          tabId: capture.tabId,
+          title: errorMessageForCode(serialized)
+        }).catch(() => {});
+      }
     }
     await sendOffscreen({
       type: MESSAGE.OFFSCREEN_ABORT,
@@ -362,13 +399,20 @@ async function runCapture(capture, regionRequest = null) {
     if (capture.prepared) {
       await sendTab(capture.tabId, { type: MESSAGE.CONTENT_RESTORE }).catch(() => {});
     }
-    await chrome.action.setBadgeText({ tabId: capture.tabId, text: "" }).catch(() => {});
+    if (activeCapture?.status !== "error") {
+      await chrome.action.setBadgeText({ tabId: capture.tabId, text: "" }).catch(() => {});
+    }
     if (activeCapture?.id === capture.id) {
       const finalState = currentState();
       setTimeout(() => {
         if (activeCapture?.id === capture.id) {
           activeCapture = null;
           broadcastState();
+          chrome.action.setBadgeText({ tabId: capture.tabId, text: "" }).catch(() => {});
+          chrome.action.setTitle({
+            tabId: capture.tabId,
+            title: chrome.i18n.getMessage("captureFullPage")
+          }).catch(() => {});
         }
       }, finalState.status === "error" ? 5000 : 1200);
     }
@@ -383,6 +427,11 @@ async function beginCapture(mode, tabOverride = null) {
   }
 
   const tab = tabOverride || (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+  if (!Number.isInteger(tab?.id) || !Number.isInteger(tab?.windowId)) {
+    const error = new Error("No active browser tab was found.");
+    error.code = "NO_ACTIVE_TAB";
+    throw error;
+  }
   if (mode !== CAPTURE_MODE.VISIBLE) {
     assertCapturableTab(tab);
   }
@@ -401,6 +450,10 @@ async function beginCapture(mode, tabOverride = null) {
     prepared: false
   };
   activeCapture = capture;
+  await chrome.action.setTitle({
+    tabId: tab.id,
+    title: chrome.i18n.getMessage("captureFullPage")
+  }).catch(() => {});
   await broadcastState();
 
   if (mode === CAPTURE_MODE.REGION) {
@@ -497,7 +550,11 @@ chrome.commands.onCommand.addListener((command) => {
   const mode = command === "capture-visible-area"
     ? CAPTURE_MODE.VISIBLE
     : CAPTURE_MODE.FULL;
-  beginCapture(mode).catch(() => {});
+  chrome.tabs.query({ active: true, lastFocusedWindow: true })
+    .then(([tab]) => beginCapture(mode, tab).catch((error) => {
+      showActionError(error, tab?.id);
+    }))
+    .catch(() => {});
 });
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -543,8 +600,20 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
   }
 });
 
-chrome.action.onClicked.addListener(() => {
-  beginCapture(CAPTURE_MODE.FULL).catch(() => {});
+chrome.action.onClicked.addListener((tab) => {
+  beginCapture(CAPTURE_MODE.FULL, tab).catch((error) => {
+    showActionError(error, tab?.id);
+  });
+});
+
+chrome.tabs.onRemoved.addListener((tabId) => {
+  cancelActiveCapture(tabId);
+});
+
+chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
+  if (changeInfo.status === "loading") {
+    cancelActiveCapture(tabId);
+  }
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -555,7 +624,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   };
   const mode = modeById[info.menuItemId];
   if (mode) {
-    beginCapture(mode, tab).catch(() => {});
+    beginCapture(mode, tab).catch((error) => {
+      showActionError(error, tab?.id);
+    });
   } else if (info.menuItemId === "pagestitch-library") {
     chrome.tabs.create({ url: chrome.runtime.getURL("library/library.html") });
   }

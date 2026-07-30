@@ -40,9 +40,10 @@ PageStitch uses plain Manifest V3 JavaScript and has no runtime or build depende
 
 ```sh
 npm run verify
+npm run package
 ```
 
-The command validates the manifest, locale parity, CSP-safe HTML, JavaScript syntax, and unit tests.
+The verification command validates the manifest, locale parity, CSP-safe HTML, JavaScript syntax, and unit tests. The package command creates and integrity-checks a versioned ZIP in `dist/`.
 
 For a manual capture test, open `test/fixtures/tall-page.html` through a local HTTP server or a regular `file://` tab with file access enabled for the extension.
 
@@ -52,8 +53,8 @@ The full manual verification matrix is in [`docs/SMOKE_TEST.md`](docs/SMOKE_TEST
 
 - `background/service-worker.js` coordinates scrolling, throttles `captureVisibleTab`, and opens the editor.
 - `content/capture.js` prepares and scrolls the page, manages region selection, and restores page state.
-- `offscreen/offscreen.js` stitches viewport images into 12,000-pixel segments and stores them locally.
-- `editor/` renders capture segments, applies non-destructive annotations, and exports files.
+- `offscreen/offscreen.js` stitches viewport images into adaptive, memory-bounded segments and stores them locally.
+- `editor/` virtualizes capture segments, applies non-destructive annotations, and exports files.
 - `shared/db.js` owns the IndexedDB session and segment stores.
 
 Captured page data never leaves the browser.
@@ -68,7 +69,7 @@ The manifest targets Chromium 109 or newer because local image assembly uses the
 - The source tab must remain active during a full-page capture because `captureVisibleTab` captures the active tab in its window.
 - Very long images are exported as numbered PNG/JPEG parts; PDF export remains multi-page.
 - Cross-origin iframe contents are captured as pixels, but PageStitch cannot inspect or independently scroll a cross-origin frame.
-- Sites that continuously append content can keep changing their height; PageStitch stops when it reaches the current bottom.
+- Sites that continuously append content can keep changing their height; PageStitch caps a capture at 250 sections and marks the saved result as truncated.
 
 ## License
 

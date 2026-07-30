@@ -24,6 +24,9 @@ async function save() {
   await setSettings({
     format: values.format,
     jpegQuality: Number(values.jpegQuality),
+    pdfFormat: values.pdfFormat,
+    pdfOrientation: values.pdfOrientation,
+    pdfMetadata: form.elements.pdfMetadata.checked,
     captureDelay: Number(values.captureDelay),
     fileNameTemplate: values.fileNameTemplate,
     keepHistory: Number(values.keepHistory),
@@ -39,6 +42,9 @@ localizeDocument();
 const settings = await getSettings();
 form.elements.format.value = settings.format;
 form.elements.jpegQuality.value = settings.jpegQuality;
+form.elements.pdfFormat.value = settings.pdfFormat;
+form.elements.pdfOrientation.value = settings.pdfOrientation;
+form.elements.pdfMetadata.checked = settings.pdfMetadata;
 form.elements.captureDelay.value = String(settings.captureDelay);
 form.elements.fileNameTemplate.value = settings.fileNameTemplate;
 form.elements.keepHistory.value = String(settings.keepHistory);

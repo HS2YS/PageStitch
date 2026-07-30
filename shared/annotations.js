@@ -58,6 +58,39 @@ export function rectanglesIntersect(left, right) {
   );
 }
 
+export function findTopmostAnnotationAtPoint(annotations, point) {
+  for (let index = annotations.length - 1; index >= 0; index -= 1) {
+    const bounds = annotationBounds(annotations[index]);
+    if (
+      point.x >= bounds.x &&
+      point.x <= bounds.x + bounds.width &&
+      point.y >= bounds.y &&
+      point.y <= bounds.y + bounds.height
+    ) {
+      return index;
+    }
+  }
+  return -1;
+}
+
+export function translateAnnotation(annotation, deltaX, deltaY) {
+  if (annotation.type === "pen" || annotation.type === "highlight") {
+    for (const point of annotation.points) {
+      point.x += deltaX;
+      point.y += deltaY;
+    }
+  } else if (annotation.type === "arrow") {
+    annotation.x1 += deltaX;
+    annotation.y1 += deltaY;
+    annotation.x2 += deltaX;
+    annotation.y2 += deltaY;
+  } else {
+    annotation.x += deltaX;
+    annotation.y += deltaY;
+  }
+  return annotation;
+}
+
 function setupStroke(context, annotation, offset, scale) {
   context.strokeStyle = annotation.color || "#ef476f";
   context.fillStyle = annotation.color || "#ef476f";

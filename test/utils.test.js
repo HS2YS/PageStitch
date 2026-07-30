@@ -4,7 +4,9 @@ import {
   buildFilename,
   calculateCapturePositions,
   clamp,
-  sanitizeFilename
+  sanitizeFilename,
+  sanitizeSubfolder,
+  withDownloadSubfolder
 } from "../shared/utils.js";
 
 test("clamp keeps a value inside its range", () => {
@@ -35,4 +37,12 @@ test("calculateCapturePositions includes the exact final scroll", () => {
   assert.deepEqual(calculateCapturePositions(800, 900), [0]);
   assert.deepEqual(calculateCapturePositions(2500, 1000), [0, 1000, 1500]);
   assert.deepEqual(calculateCapturePositions(3000, 1000), [0, 1000, 2000]);
+});
+
+test("download subfolders cannot escape the Downloads directory", () => {
+  assert.equal(sanitizeSubfolder("../Reports//2026:Q3"), "Reports/2026 Q3");
+  assert.equal(
+    withDownloadSubfolder("capture.png", "../Reports//2026:Q3"),
+    "Reports/2026 Q3/capture.png"
+  );
 });

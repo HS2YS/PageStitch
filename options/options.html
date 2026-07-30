@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PageStitch settings</title>
+    <title data-i18n="optionsTitle">PageStitch settings</title>
     <link rel="stylesheet" href="options.css">
   </head>
   <body>
@@ -27,7 +27,7 @@
             <span class="number">01</span>
             <div>
               <h1 data-i18n="outputDefaults">Output defaults</h1>
-              <p>Choose how new captures are named and exported.</p>
+              <p data-i18n="outputDefaultsHint">Choose how new captures are named and exported.</p>
             </div>
           </div>
 
@@ -68,7 +68,31 @@
             </label>
           </div>
 
+          <div class="field-grid lower-grid">
+            <label class="field">
+              <span data-i18n="pdfPaper">Paper size</span>
+              <select id="pdf-format" name="pdfFormat">
+                <option value="a4">A4</option>
+                <option value="letter">Letter</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="orientation">Orientation</span>
+              <select id="pdf-orientation" name="pdfOrientation">
+                <option value="portrait" data-i18n="portrait">Portrait</option>
+                <option value="landscape" data-i18n="landscape">Landscape</option>
+              </select>
+            </label>
+          </div>
+
           <div class="check-grid">
+            <label class="check-field">
+              <input id="pdf-metadata" name="pdfMetadata" type="checkbox">
+              <span>
+                <strong data-i18n="includeMetadata">Include title, URL, and capture date</strong>
+                <small data-i18n="pdfMetadataHint">Used for PDF exports.</small>
+              </span>
+            </label>
             <label class="check-field">
               <input id="save-as" name="saveAs" type="checkbox">
               <span>
@@ -91,7 +115,7 @@
             <span class="number">02</span>
             <div>
               <h2 data-i18n="capture">Capture</h2>
-              <p>Give lazy-loaded pages enough time to settle after scrolling.</p>
+              <p data-i18n="captureHint">Give lazy-loaded pages enough time to settle after scrolling.</p>
             </div>
           </div>
           <div class="field-grid">
@@ -120,7 +144,7 @@
             <span class="number">03</span>
             <div>
               <h2 data-i18n="shortcuts">Keyboard shortcuts</h2>
-              <p>Alt + Shift + P — full page · Alt + Shift + V — visible area</p>
+              <p data-i18n="shortcutsHint">Alt + Shift + P — full page · Alt + Shift + V — visible area</p>
             </div>
           </div>
           <button id="shortcuts-button" class="secondary-button" type="button" data-i18n="manageShortcuts">

@@ -1,4 +1,5 @@
 import {
+  MAX_SEGMENT_CANVAS_AREA,
   MESSAGE,
   SEGMENT_HEIGHT_PX
 } from "../shared/constants.js";
@@ -8,7 +9,10 @@ import {
   putSession
 } from "../shared/db.js";
 import { canvasToBlob } from "../shared/utils.js";
-import { splitRangeAcrossSegments } from "../shared/segments.js";
+import {
+  maximumSegmentHeight,
+  splitRangeAcrossSegments
+} from "../shared/segments.js";
 
 const sessions = new Map();
 
@@ -21,10 +25,10 @@ function loadImage(dataUrl) {
   });
 }
 
-function createSegmentCanvas(width) {
+function createSegmentCanvas(width, height) {
   const canvas = document.createElement("canvas");
   canvas.width = width;
-  canvas.height = SEGMENT_HEIGHT_PX;
+  canvas.height = height;
   const context = canvas.getContext("2d", {
     alpha: false,
     desynchronized: true
@@ -57,9 +61,12 @@ async function createThumbnail(canvas) {
   return canvasToBlob(thumbnail, "image/jpeg", 0.78);
 }
 
-async function finalizeCurrentSegment(state, requestedHeight = SEGMENT_HEIGHT_PX) {
+async function finalizeCurrentSegment(state, requestedHeight = state.segmentHeight) {
   if (!state.current) return;
-  const height = Math.max(1, Math.min(SEGMENT_HEIGHT_PX, Math.round(requestedHeight)));
+  const height = Math.max(
+    1,
+    Math.min(state.segmentHeight, Math.round(requestedHeight))
+  );
   let outputCanvas = state.current.canvas;
 
   if (height !== outputCanvas.height) {
@@ -99,6 +106,7 @@ function makeState(metadata) {
     outputHeight: 0,
     scaleX: 1,
     scaleY: 1,
+    segmentHeight: SEGMENT_HEIGHT_PX,
     segmentCount: 0,
     totalBytes: 0,
     thumbnail: null,
@@ -122,7 +130,7 @@ async function ensureSegment(state, index) {
     state.currentIndex += 1;
   }
   if (!state.current) {
-    state.current = createSegmentCanvas(state.outputWidth);
+    state.current = createSegmentCanvas(state.outputWidth, state.segmentHeight);
   }
 }
 
@@ -142,6 +150,11 @@ async function addSlice(request) {
     state.scaleX = image.naturalWidth / request.windowViewportWidth;
     state.scaleY = image.naturalHeight / request.windowViewportHeight;
     state.outputWidth = Math.max(1, Math.round(sourceRect.width * state.scaleX));
+    state.segmentHeight = maximumSegmentHeight(
+      state.outputWidth,
+      SEGMENT_HEIGHT_PX,
+      MAX_SEGMENT_CANVAS_AREA
+    );
   }
 
   state.lastPageHeight = Math.max(state.lastPageHeight || 0, request.pageHeight || 0);
@@ -158,10 +171,10 @@ async function addSlice(request) {
   const sourceYBase = Math.round(sourceRect.y * state.scaleY);
   const sourceWidth = Math.round(sourceRect.width * state.scaleX);
 
-  const parts = splitRangeAcrossSegments(sliceTop, sliceBottom, SEGMENT_HEIGHT_PX);
+  const parts = splitRangeAcrossSegments(sliceTop, sliceBottom, state.segmentHeight);
   for (const part of parts) {
     await ensureSegment(state, part.index);
-    const segmentTop = part.index * SEGMENT_HEIGHT_PX;
+    const segmentTop = part.index * state.segmentHeight;
 
     state.current.context.drawImage(
       image,
@@ -190,7 +203,7 @@ async function finishSession(request) {
 
   state.lastPageHeight = Math.max(1, request.pageHeight || state.lastPageHeight || 1);
   state.outputHeight = Math.max(1, Math.round(state.lastPageHeight * state.scaleY));
-  const currentSegmentTop = state.currentIndex * SEGMENT_HEIGHT_PX;
+  const currentSegmentTop = state.currentIndex * state.segmentHeight;
   const remainingHeight = state.outputHeight - currentSegmentTop;
   await finalizeCurrentSegment(state, remainingHeight);
 
@@ -206,6 +219,7 @@ async function finishSession(request) {
     segmentCount: state.segmentCount,
     byteSize: state.totalBytes,
     thumbnail: state.thumbnail,
+    truncated: Boolean(request.truncated),
     annotations: [],
     crop: null
   };

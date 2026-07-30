@@ -12,7 +12,9 @@ import {
 import {
   annotationBounds,
   drawAnnotations,
-  rectanglesIntersect
+  findTopmostAnnotationAtPoint,
+  rectanglesIntersect,
+  translateAnnotation
 } from "../shared/annotations.js";
 import { localizeDocument, message } from "../shared/i18n.js";
 import { buildPdfFromJpegs } from "../shared/pdf.js";
@@ -99,7 +101,8 @@ const state = {
   exporting: false,
   dragUrl: null,
   dragRevision: 0,
-  dragTimer: null
+  dragTimer: null,
+  previewObserver: null
 };
 
 const TOOL_LABEL_KEYS = {
@@ -243,58 +246,163 @@ function sourceViewport(source) {
   };
 }
 
-function renderSegment(index) {
+function previewRenderScale() {
+  return clamp(state.zoom * (window.devicePixelRatio || 1), 0.05, 1);
+}
+
+async function acquireSourceBitmap(source) {
+  source.bitmapUsers += 1;
+  try {
+    if (source.bitmap) return source.bitmap;
+    if (!source.bitmapPromise) {
+      source.bitmapPromise = createImageBitmap(source.blob)
+        .then((bitmap) => {
+          source.bitmap = bitmap;
+          source.bitmapPromise = null;
+          return bitmap;
+        })
+        .catch((error) => {
+          source.bitmapPromise = null;
+          throw error;
+        });
+    }
+    return await source.bitmapPromise;
+  } catch (error) {
+    source.bitmapUsers = Math.max(0, source.bitmapUsers - 1);
+    throw error;
+  }
+}
+
+function unloadSource(source) {
+  if (source.visible || source.bitmapUsers > 0) return;
+  source.bitmap?.close?.();
+  source.bitmap = null;
+  source.canvas.width = 1;
+  source.canvas.height = 1;
+  source.loaded = false;
+}
+
+function releaseSourceBitmap(source) {
+  source.bitmapUsers = Math.max(0, source.bitmapUsers - 1);
+  unloadSource(source);
+}
+
+async function renderSegment(index) {
   const source = state.sources[index];
-  if (!source) return;
-  const { context, canvas, bitmap } = source;
-  context.save();
-  context.setTransform(1, 0, 0, 1, 0, 0);
-  context.globalAlpha = 1;
-  context.globalCompositeOperation = "source-over";
-  context.clearRect(0, 0, canvas.width, canvas.height);
-  context.fillStyle = "#ffffff";
-  context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(bitmap, 0, 0);
-  context.restore();
-  const annotations = state.draft
-    ? [...state.annotations, state.draft]
-    : state.annotations;
-  drawAnnotations(context, annotations, {
-    offset: { x: 0, y: source.top },
-    viewport: sourceViewport(source),
-    scale: 1
-  });
-  if (state.tool === "select" && state.selectedIndex >= 0) {
-    const selected = state.annotations[state.selectedIndex];
-    if (selected) {
-      const bounds = annotationBounds(selected);
-      if (rectanglesIntersect(bounds, sourceViewport(source))) {
-        const localY = bounds.y - source.top;
-        context.save();
-        context.strokeStyle = "#6d4aff";
-        context.fillStyle = "#ffffff";
-        context.lineWidth = 2;
-        context.setLineDash([7, 5]);
-        context.strokeRect(bounds.x, localY, bounds.width, bounds.height);
-        context.setLineDash([]);
-        for (const [x, y] of [
-          [bounds.x, localY],
-          [bounds.x + bounds.width, localY],
-          [bounds.x, localY + bounds.height],
-          [bounds.x + bounds.width, localY + bounds.height]
-        ]) {
-          context.fillRect(x - 4, y - 4, 8, 8);
-          context.strokeRect(x - 4, y - 4, 8, 8);
+  if (!source || !source.visible) return;
+  const revision = ++source.renderRevision;
+  const bitmap = await acquireSourceBitmap(source);
+  try {
+    if (!source.visible || revision !== source.renderRevision) return;
+    const { context, canvas } = source;
+    const scale = previewRenderScale();
+    const previewWidth = Math.max(1, Math.round(source.width * scale));
+    const previewHeight = Math.max(1, Math.round(source.height * scale));
+    if (canvas.width !== previewWidth || canvas.height !== previewHeight) {
+      canvas.width = previewWidth;
+      canvas.height = previewHeight;
+    }
+    context.save();
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.globalAlpha = 1;
+    context.globalCompositeOperation = "source-over";
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    context.restore();
+    const annotations = state.draft
+      ? [...state.annotations, state.draft]
+      : state.annotations;
+    drawAnnotations(context, annotations, {
+      offset: { x: 0, y: source.top },
+      viewport: sourceViewport(source),
+      scale
+    });
+    if (state.tool === "select" && state.selectedIndex >= 0) {
+      const selected = state.annotations[state.selectedIndex];
+      if (selected) {
+        const bounds = annotationBounds(selected);
+        if (rectanglesIntersect(bounds, sourceViewport(source))) {
+          const localY = (bounds.y - source.top) * scale;
+          const left = bounds.x * scale;
+          const width = bounds.width * scale;
+          const height = bounds.height * scale;
+          context.save();
+          context.strokeStyle = "#6d4aff";
+          context.fillStyle = "#ffffff";
+          context.lineWidth = 2;
+          context.setLineDash([7, 5]);
+          context.strokeRect(left, localY, width, height);
+          context.setLineDash([]);
+          for (const [x, y] of [
+            [left, localY],
+            [left + width, localY],
+            [left, localY + height],
+            [left + width, localY + height]
+          ]) {
+            context.fillRect(x - 4, y - 4, 8, 8);
+            context.strokeRect(x - 4, y - 4, 8, 8);
+          }
+          context.restore();
         }
-        context.restore();
       }
     }
+    source.loaded = true;
+  } finally {
+    releaseSourceBitmap(source);
   }
 }
 
 function renderAllSegments() {
   for (let index = 0; index < state.sources.length; index += 1) {
-    renderSegment(index);
+    renderSegment(index).catch((error) => {
+      console.error("Unable to render capture segment.", error);
+    });
+  }
+}
+
+function setupVirtualPreview() {
+  if (!("IntersectionObserver" in window)) {
+    for (const source of state.sources) source.visible = true;
+    renderAllSegments();
+    return;
+  }
+
+  state.previewObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      const index = Number(entry.target.dataset.segmentIndex);
+      const source = state.sources[index];
+      if (!source) continue;
+      source.visible = entry.isIntersecting;
+      if (source.visible) {
+        renderSegment(index).catch((error) => {
+          console.error("Unable to render capture segment.", error);
+        });
+      } else {
+        unloadSource(source);
+      }
+    }
+  }, {
+    root: elements.workspace,
+    rootMargin: "320px 0px"
+  });
+
+  for (const source of state.sources) {
+    state.previewObserver.observe(source.wrapper);
+  }
+}
+
+function refreshVirtualPreview() {
+  if (!state.previewObserver) {
+    renderAllSegments();
+    return;
+  }
+  for (const source of state.sources) {
+    source.visible = false;
+    unloadSource(source);
+    state.previewObserver.unobserve(source.wrapper);
+    state.previewObserver.observe(source.wrapper);
   }
 }
 
@@ -312,40 +420,14 @@ function impactedIndices(...annotations) {
 
 function renderAffected(previousDraft, nextDraft) {
   for (const index of new Set(impactedIndices(previousDraft, nextDraft))) {
-    renderSegment(index);
+    renderSegment(index).catch((error) => {
+      console.error("Unable to render capture segment.", error);
+    });
   }
 }
 
 function annotationAtPoint(point) {
-  for (let index = state.annotations.length - 1; index >= 0; index -= 1) {
-    const bounds = annotationBounds(state.annotations[index]);
-    if (
-      point.x >= bounds.x &&
-      point.x <= bounds.x + bounds.width &&
-      point.y >= bounds.y &&
-      point.y <= bounds.y + bounds.height
-    ) {
-      return index;
-    }
-  }
-  return -1;
-}
-
-function moveAnnotation(annotation, deltaX, deltaY) {
-  if (annotation.type === "pen" || annotation.type === "highlight") {
-    for (const point of annotation.points) {
-      point.x += deltaX;
-      point.y += deltaY;
-    }
-  } else if (annotation.type === "arrow") {
-    annotation.x1 += deltaX;
-    annotation.y1 += deltaY;
-    annotation.x2 += deltaX;
-    annotation.y2 += deltaY;
-  } else {
-    annotation.x += deltaX;
-    annotation.y += deltaY;
-  }
+  return findTopmostAnnotationAtPoint(state.annotations, point);
 }
 
 function updateSelectionInspector() {
@@ -383,6 +465,7 @@ function applyZoom(zoom, preserveCenter = true) {
     source.wrapper.style.height = `${source.height * state.zoom}px`;
   }
   elements.zoomFit.textContent = `${Math.round(state.zoom * 100)}%`;
+  refreshVirtualPreview();
   renderCrop();
 
   if (center) {
@@ -610,7 +693,7 @@ function pointerMove(event) {
       const point = pointFromEvent(event);
       const annotation = state.annotations[state.selectedIndex];
       const previous = structuredClone(annotation);
-      moveAnnotation(
+      translateAnnotation(
         annotation,
         point.x - state.pointer.lastPoint.x,
         point.y - state.pointer.lastPoint.y
@@ -656,17 +739,22 @@ async function drawSourceRegion(context, region, destination) {
     const sourceY = intersectionTop - source.top;
     const sourceHeight = intersectionBottom - intersectionTop;
     const destinationY = destination.y + (intersectionTop - region.y) * scaleY;
-    context.drawImage(
-      source.bitmap,
-      region.x,
-      sourceY,
-      region.width,
-      sourceHeight,
-      destination.x,
-      destinationY,
-      destination.width,
-      sourceHeight * scaleY
-    );
+    const bitmap = await acquireSourceBitmap(source);
+    try {
+      context.drawImage(
+        bitmap,
+        region.x,
+        sourceY,
+        region.width,
+        sourceHeight,
+        destination.x,
+        destinationY,
+        destination.width,
+        sourceHeight * scaleY
+      );
+    } finally {
+      releaseSourceBitmap(source);
+    }
   }
   return { scaleX, scaleY };
 }
@@ -1001,6 +1089,18 @@ async function performExport() {
   }
 }
 
+async function exportWithDefaults() {
+  const settings = await getSettings();
+  if (settings.format === "pdf") {
+    elements.pdfFormat.value = settings.pdfFormat;
+    elements.pdfOrientation.value = settings.pdfOrientation;
+    elements.pdfMetadata.checked = settings.pdfMetadata;
+    await exportPdf(settings.jpegQuality);
+  } else {
+    await exportImage(settings.format, settings.jpegQuality);
+  }
+}
+
 function setupEventHandlers() {
   elements.stage.addEventListener("pointerdown", pointerDown);
   elements.stage.addEventListener("pointermove", pointerMove);
@@ -1088,7 +1188,7 @@ function setupEventHandlers() {
   });
 
   elements.newCapture.addEventListener("click", () => {
-    if (state.session.url?.startsWith("http")) {
+    if (/^(?:https?|file|ftp):/i.test(state.session.url || "")) {
       chrome.tabs.create({ url: state.session.url });
     }
   });
@@ -1116,6 +1216,14 @@ function setupEventHandlers() {
     } else if (modifier && event.key.toLowerCase() === "y") {
       event.preventDefault();
       applyHistory(state.historyIndex + 1);
+    } else if (modifier && event.key.toLowerCase() === "s") {
+      event.preventDefault();
+      const exportAction = elements.exportDialog.open
+        ? performExport()
+        : exportWithDefaults();
+      exportAction.catch((error) => {
+        showToast(error.message || message("captureFailed"));
+      });
     } else if (event.key === "Escape" && state.draft) {
       const previous = state.draft;
       state.draft = null;
@@ -1139,6 +1247,7 @@ function setupEventHandlers() {
     }, 120);
   });
   addEventListener("unload", () => {
+    state.previewObserver?.disconnect();
     if (state.dragUrl) URL.revokeObjectURL(state.dragUrl);
     for (const source of state.sources) source.bitmap?.close?.();
   });
@@ -1170,31 +1279,36 @@ async function initialize() {
   elements.meta.textContent = `${session.width} × ${session.height} px · ${bytesToHumanSize(session.byteSize)}`;
   elements.infoSize.textContent = `${session.width} × ${session.height}`;
   elements.infoMode.textContent = {
-    [CAPTURE_MODE.FULL]: "Full page",
-    [CAPTURE_MODE.VISIBLE]: "Visible",
-    [CAPTURE_MODE.REGION]: "Region"
+    [CAPTURE_MODE.FULL]: message("fullPageMode"),
+    [CAPTURE_MODE.VISIBLE]: message("visibleMode"),
+    [CAPTURE_MODE.REGION]: message("regionMode")
   }[session.mode] || session.mode;
   try {
-    elements.infoSource.textContent = new URL(session.url).hostname || "Local page";
+    elements.infoSource.textContent = new URL(session.url).hostname || message("localPage");
   } catch {
-    elements.infoSource.textContent = "Local page";
+    elements.infoSource.textContent = message("localPage");
   }
+  elements.newCapture.hidden = !/^(?:https?|file|ftp):/i.test(session.url || "");
 
   let top = 0;
-  const bitmaps = await Promise.all(segments.map((record) => createImageBitmap(record.blob)));
   state.sources = segments.map((record, index) => {
-    const bitmap = bitmaps[index];
     const wrapper = document.createElement("div");
     wrapper.className = "segment-wrap";
+    wrapper.dataset.segmentIndex = String(index);
     const canvas = document.createElement("canvas");
-    canvas.width = record.width;
-    canvas.height = record.height;
+    canvas.width = 1;
+    canvas.height = 1;
     wrapper.append(canvas);
     elements.stage.insertBefore(wrapper, elements.cropSelection);
     const source = {
       ...record,
       top,
-      bitmap,
+      bitmap: null,
+      bitmapPromise: null,
+      bitmapUsers: 0,
+      visible: false,
+      loaded: false,
+      renderRevision: 0,
       wrapper,
       canvas,
       context: canvas.getContext("2d", { alpha: false })
@@ -1207,28 +1321,24 @@ async function initialize() {
   state.historyIndex = 0;
   updateHistoryButtons();
   setupEventHandlers();
-  renderAllSegments();
-  elements.loading.hidden = true;
   elements.stage.hidden = false;
   fitToWidth();
+  state.sources[0].visible = true;
+  await renderSegment(0);
+  elements.loading.hidden = true;
+  setupVirtualPreview();
   renderCrop();
   setTool("select");
+  if (session.truncated) {
+    showToast(message("captureTruncated"));
+  }
   if ("requestIdleCallback" in window) {
     requestIdleCallback(() => scheduleDragPreparation());
   } else {
     scheduleDragPreparation();
   }
   if (new URLSearchParams(location.search).get("auto") === "1") {
-    const settings = await getSettings();
-    const format = settings.format;
-    if (format === "pdf") {
-      elements.pdfFormat.value = settings.pdfFormat;
-      elements.pdfOrientation.value = settings.pdfOrientation;
-      elements.pdfMetadata.checked = settings.pdfMetadata;
-      await exportPdf(settings.jpegQuality);
-    } else {
-      await exportImage(format, settings.jpegQuality);
-    }
+    await exportWithDefaults();
   }
 }
 

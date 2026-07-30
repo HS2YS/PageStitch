@@ -24,6 +24,13 @@ Use a disposable Chromium profile if possible.
 2. Capture the full page.
 3. Confirm all four iframe sections appear and its sticky header is not repeated.
 
+## Inner scroll container
+
+1. Open `test/fixtures/scroll-container.html` from a local HTTP server.
+2. Capture the full page.
+3. Confirm PageStitch chooses the large inner container despite the fixture's small outer-page scroll.
+4. Confirm all four container sections appear, the outer dark page is cropped away, and the sticky header appears only once.
+
 ## Editor and export
 
 1. Add a pen stroke, highlighter, rectangle, arrow, text, emoji, and blur region.
@@ -37,11 +44,19 @@ Use a disposable Chromium profile if possible.
 ## Long-page and library behavior
 
 1. Capture a page tall enough to create multiple internal segments.
-2. Confirm the editor shows a continuous image.
-3. Export it and confirm numbered files are produced where required.
-4. Open the capture library from the editor or extension action context menu.
-5. Select several captures, batch-download them, then batch-delete test captures.
-6. Change the history limit and confirm old captures are trimmed.
+2. Scroll through the editor, zoom from fit view to 100%, and confirm segments appear continuously without permanent blank bands.
+3. In Chromium's task manager, confirm editor memory does not grow with every segment after scrolling away from it.
+4. Export the capture and confirm numbered files are produced where required.
+5. Open the capture library from the editor or extension action context menu.
+6. Select several captures, batch-download them, then batch-delete test captures.
+7. Change the history limit and confirm old captures are trimmed.
+
+## Interrupted capture
+
+1. Start a full-page capture, then navigate the source tab before it finishes.
+2. Confirm the capture stops and no incomplete item is added to the library.
+3. Start again, close the source tab during capture, and confirm no orphaned progress state remains.
+4. Click PageStitch on a restricted `chrome://` page and confirm a temporary error badge/title appears.
 
 ## Settings and privacy
 

@@ -18,7 +18,7 @@ This document tracks the user-visible capabilities advertised by current full-pa
 | Embedded cross-origin iframe | Platform-limited | Its visible pixels are captured, but `activeTab` does not authorize independently scrolling a foreign origin. PageStitch deliberately avoids broad persistent host permissions. |
 | Visible-area capture | Implemented | Popup, context menu, and `Alt+Shift+V`. |
 | Selected-region capture | Implemented | Shadow-DOM selection overlay and cropped offscreen assembly. |
-| Very tall page splitting | Implemented | 12,000-pixel IndexedDB segments and numbered image exports. |
+| Very tall page splitting | Implemented | Adaptive memory-bounded IndexedDB segments, virtualized editor previews, and numbered image exports. |
 | Cancel and progress feedback | Implemented | Page HUD, toolbar badge, popup state, and cancellation messaging. |
 
 ## Editor

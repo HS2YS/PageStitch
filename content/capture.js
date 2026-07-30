@@ -20,6 +20,7 @@
     mode: null,
     target: null,
     targetFrame: null,
+    targetMarkerValue: null,
     targetKind: "document",
     originalPosition: { x: 0, y: 0 },
     originalInlineStyles: new Map(),
@@ -53,14 +54,16 @@
 
   function findScrollableTarget() {
     const documentTarget = document.scrollingElement || document.documentElement;
-    if (getDocumentHeight() > window.innerHeight + 2) {
-      return { target: documentTarget, kind: "document" };
-    }
-
-    let winner = null;
-    let winnerKind = "element";
+    const documentHeight = getDocumentHeight();
+    const documentScrolls = documentHeight > window.innerHeight + 2;
+    let winner = documentScrolls ? documentTarget : null;
+    let winnerKind = documentScrolls ? "document" : "element";
     let winnerFrame = null;
-    let winnerScore = 0;
+    let winnerScore = documentScrolls
+      ? window.innerWidth *
+        window.innerHeight *
+        Math.min(4, documentHeight / Math.max(1, window.innerHeight))
+      : 0;
     const elements = document.body?.querySelectorAll("*") || [];
     for (const element of elements) {
       if (element.clientHeight < 100 || element.scrollHeight <= element.clientHeight + 2) continue;
@@ -96,8 +99,7 @@
         const score =
           rect.width *
           rect.height *
-          Math.min(4, frameRoot.scrollHeight / Math.max(1, frameRoot.clientHeight)) *
-          1.08;
+          Math.min(4, frameRoot.scrollHeight / Math.max(1, frameRoot.clientHeight));
         if (score > winnerScore) {
           winner = frameRoot;
           winnerKind = "frame";
@@ -224,6 +226,9 @@
     const elements = scopeDocument.body?.querySelectorAll("*") || [];
     const view = scopeDocument.defaultView || window;
     const scrollPosition = getPosition().y;
+    const targetRect = captureState.targetKind === "element"
+      ? captureState.target.getBoundingClientRect()
+      : null;
     for (const element of elements) {
       if (element === captureState.hudHost) continue;
       const style = view.getComputedStyle(element);
@@ -233,15 +238,15 @@
       floating.push({
         element,
         position: style.position,
-        documentTop: rect.top + scrollPosition
+        documentTop: targetRect
+          ? rect.top - targetRect.top + scrollPosition
+          : rect.top + scrollPosition
       });
     }
     captureState.fixedElements = floating;
   }
 
   function updateFloatingElements(scrollPosition) {
-    if (captureState.targetKind !== "document" && captureState.targetKind !== "frame") return;
-
     for (const item of captureState.fixedElements) {
       const shouldHide = item.position === "fixed"
         ? scrollPosition > 0
@@ -382,6 +387,9 @@
     captureState.target = selected.target;
     captureState.targetFrame = selected.frame || null;
     captureState.targetKind = selected.kind;
+    captureState.targetMarkerValue =
+      captureState.target.getAttribute("data-pagestitch-capture-target");
+    captureState.target.setAttribute("data-pagestitch-capture-target", "true");
     captureState.originalPosition = getPosition();
     captureState.active = true;
 
@@ -411,7 +419,13 @@
           transition-duration: 0s !important;
         }
         html::-webkit-scrollbar,
-        body::-webkit-scrollbar { display: none !important; }
+        body::-webkit-scrollbar,
+        [data-pagestitch-capture-target="true"]::-webkit-scrollbar {
+          display: none !important;
+        }
+        [data-pagestitch-capture-target="true"] {
+          scrollbar-width: none !important;
+        }
       `;
       targetDocument.documentElement.append(pauseStyle);
       captureState.pauseStyles.push(pauseStyle);
@@ -482,9 +496,18 @@
 
     setPosition(captureState.originalPosition.x, captureState.originalPosition.y);
     restoreRememberedStyles();
+    if (captureState.targetMarkerValue === null) {
+      captureState.target.removeAttribute("data-pagestitch-capture-target");
+    } else {
+      captureState.target.setAttribute(
+        "data-pagestitch-capture-target",
+        captureState.targetMarkerValue
+      );
+    }
     captureState.active = false;
     captureState.target = null;
     captureState.targetFrame = null;
+    captureState.targetMarkerValue = null;
     await afterPaint();
     return { ok: true };
   }

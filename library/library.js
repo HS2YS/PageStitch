@@ -5,11 +5,9 @@ import {
   listSessions
 } from "../shared/db.js";
 import {
-  closeCaptureSources,
-  decodeCaptureSources,
   maximumPartHeight,
   normalizeRegion,
-  renderCaptureRegion
+  renderCaptureRegionFromRecords
 } from "../shared/image-renderer.js";
 import { localizeDocument, message } from "../shared/i18n.js";
 import { getSettings } from "../shared/settings.js";
@@ -92,7 +90,8 @@ function createCard(session) {
   card.querySelector(".card-meta").textContent =
     `${session.width} × ${session.height} px · ${bytesToHumanSize(session.byteSize)} · ` +
     new Date(session.createdAt).toLocaleDateString();
-  card.querySelector(".mode-badge").textContent = modeLabel(session.mode);
+  card.querySelector(".mode-badge").textContent =
+    `${modeLabel(session.mode)}${session.truncated ? ` · ${message("truncated")}` : ""}`;
 
   const thumbnail = card.querySelector(".thumbnail img");
   if (session.thumbnail) {
@@ -151,40 +150,35 @@ async function downloadBlob(blob, filename) {
 
 async function exportCapture(session, settings) {
   const records = await getSegments(session.id);
-  const sources = await decodeCaptureSources(records);
-  try {
-    const region = normalizeRegion(session.crop, session.width, session.height);
-    const partHeight = maximumPartHeight(region.width);
-    const partCount = Math.ceil(region.height / partHeight);
-    const format = settings.format === "jpeg" ? "jpeg" : "png";
-    const extension = format === "jpeg" ? "jpg" : "png";
-    const mime = format === "jpeg" ? "image/jpeg" : "image/png";
-    const base = buildFilename(settings.fileNameTemplate, session, extension);
-    const stem = base.slice(0, -(extension.length + 1));
+  const region = normalizeRegion(session.crop, session.width, session.height);
+  const partHeight = maximumPartHeight(region.width);
+  const partCount = Math.ceil(region.height / partHeight);
+  const format = settings.format === "jpeg" ? "jpeg" : "png";
+  const extension = format === "jpeg" ? "jpg" : "png";
+  const mime = format === "jpeg" ? "image/jpeg" : "image/png";
+  const base = buildFilename(settings.fileNameTemplate, session, extension);
+  const stem = base.slice(0, -(extension.length + 1));
 
-    for (let index = 0; index < partCount; index += 1) {
-      const currentRegion = {
-        x: region.x,
-        y: region.y + index * partHeight,
-        width: region.width,
-        height: Math.min(partHeight, region.height - index * partHeight)
-      };
-      const canvas = renderCaptureRegion({
-        sources,
-        annotations: session.annotations || [],
-        region: currentRegion
-      });
-      const blob = await canvasToBlob(canvas, mime, settings.jpegQuality);
-      const filename = partCount === 1
-        ? base
-        : `${stem}-${String(index + 1).padStart(2, "0")}.${extension}`;
-      await downloadBlob(
-        blob,
-        withDownloadSubfolder(filename, settings.downloadSubfolder)
-      );
-    }
-  } finally {
-    closeCaptureSources(sources);
+  for (let index = 0; index < partCount; index += 1) {
+    const currentRegion = {
+      x: region.x,
+      y: region.y + index * partHeight,
+      width: region.width,
+      height: Math.min(partHeight, region.height - index * partHeight)
+    };
+    const canvas = await renderCaptureRegionFromRecords({
+      records,
+      annotations: session.annotations || [],
+      region: currentRegion
+    });
+    const blob = await canvasToBlob(canvas, mime, settings.jpegQuality);
+    const filename = partCount === 1
+      ? base
+      : `${stem}-${String(index + 1).padStart(2, "0")}.${extension}`;
+    await downloadBlob(
+      blob,
+      withDownloadSubfolder(filename, settings.downloadSubfolder)
+    );
   }
 }
 

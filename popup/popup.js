@@ -35,7 +35,9 @@ function detailForState(state) {
 function errorCopy(error) {
   const codes = {
     RESTRICTED_PAGE: "restrictedPage",
-    CAPTURE_IN_PROGRESS: "captureInProgress"
+    CAPTURE_IN_PROGRESS: "captureInProgress",
+    TAB_NOT_ACTIVE: "tabNotActive",
+    SCROLL_STUCK: "scrollStuck"
   };
   const key = codes[error?.code];
   return key ? message(key) : (error?.message || message("captureFailed"));

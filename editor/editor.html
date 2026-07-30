@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>PageStitch editor</title>
+    <title data-i18n="editorTitle">PageStitch editor</title>
     <link rel="stylesheet" href="editor.css">
   </head>
   <body>
@@ -17,7 +17,7 @@
           </div>
         </div>
 
-        <div class="history-controls" role="group" aria-label="History">
+        <div class="history-controls" role="group" aria-label="History" data-i18n-aria-label="history">
           <button id="undo-button" class="quiet-button" type="button" data-i18n-title="undo">
             <span aria-hidden="true">↶</span>
           </button>
@@ -26,7 +26,7 @@
           </button>
         </div>
 
-        <div class="zoom-controls" role="group" aria-label="Zoom">
+        <div class="zoom-controls" role="group" aria-label="Zoom" data-i18n-aria-label="zoom">
           <button id="zoom-out" class="quiet-button" type="button" data-i18n-title="zoomOut">−</button>
           <button id="zoom-fit" class="zoom-value" type="button" data-i18n-title="fit">Fit</button>
           <button id="zoom-in" class="quiet-button" type="button" data-i18n-title="zoomIn">+</button>
@@ -48,7 +48,7 @@
         </div>
       </header>
 
-      <aside class="tool-rail" aria-label="Annotation tools">
+      <aside class="tool-rail" aria-label="Annotation tools" data-i18n-aria-label="annotationTools">
         <div class="tool-group">
           <button class="tool-button is-active" type="button" data-tool="select" data-i18n-title="selectTool">
             <span aria-hidden="true">⌖</span>
@@ -101,7 +101,7 @@
 
       <aside class="inspector">
         <section class="inspector-section">
-          <span class="eyebrow">Style</span>
+          <span class="eyebrow" data-i18n="style">Style</span>
           <h2 id="active-tool-label" data-i18n="selectTool">Select</h2>
           <label class="control-row" id="color-control">
             <span data-i18n="color">Color</span>
@@ -126,7 +126,7 @@
               Delete annotation
             </button>
           </div>
-          <div id="emoji-palette" class="emoji-palette" hidden aria-label="Emoji">
+          <div id="emoji-palette" class="emoji-palette" hidden aria-label="Emoji" data-i18n-aria-label="emojiTool">
             <button type="button">✨</button>
             <button type="button">✅</button>
             <button type="button">🔥</button>
@@ -139,11 +139,11 @@
         </section>
 
         <section class="inspector-section capture-info">
-          <span class="eyebrow">Capture</span>
+          <span class="eyebrow" data-i18n="capture">Capture</span>
           <dl>
-            <div><dt>Size</dt><dd id="info-size">—</dd></div>
-            <div><dt>Mode</dt><dd id="info-mode">—</dd></div>
-            <div><dt>Source</dt><dd id="info-source">—</dd></div>
+            <div><dt data-i18n="size">Size</dt><dd id="info-size">—</dd></div>
+            <div><dt data-i18n="mode">Mode</dt><dd id="info-mode">—</dd></div>
+            <div><dt data-i18n="source">Source</dt><dd id="info-source">—</dd></div>
           </dl>
         </section>
 

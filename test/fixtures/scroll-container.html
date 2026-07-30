@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch scroll-container fixture</title>
+    <style>
+      * { box-sizing: border-box; }
+      html { width: 100%; height: 100%; margin: 0; overflow: auto; }
+      body {
+        display: grid;
+        width: 100%;
+        min-height: calc(100% + 8px);
+        margin: 0;
+        place-items: center;
+        background: #181b25;
+        color: #172033;
+        font-family: system-ui, sans-serif;
+      }
+      .app {
+        width: min(920px, 88vw);
+        height: min(720px, 82vh);
+        overflow: auto;
+        border: 10px solid #2e3343;
+        border-radius: 28px;
+        background: white;
+        box-shadow: 0 28px 80px rgba(0, 0, 0, .38);
+      }
+      header {
+        position: sticky;
+        z-index: 2;
+        top: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 72px;
+        padding: 0 40px;
+        background: rgba(255, 255, 255, .94);
+        border-bottom: 1px solid #e5e7ef;
+      }
+      section {
+        min-height: 590px;
+        padding: 72px 9%;
+        border-bottom: 1px solid #e5e7ef;
+      }
+      section:nth-child(2n) { background: #f0edff; }
+      section:last-child { background: #6845ef; color: white; }
+      h1 { margin: 0; font-size: clamp(40px, 7vw, 76px); line-height: 1; }
+      p { max-width: 620px; font-size: 19px; line-height: 1.6; }
+    </style>
+  </head>
+  <body>
+    <main class="app">
+      <header><strong>Container fixture</strong><span>Sticky header</span></header>
+      <section><h1>Container 01</h1><p>The document itself does not scroll. PageStitch should detect this inner application viewport.</p></section>
+      <section><h1>Container 02</h1><p>The sticky header must appear once, not once per captured section.</p></section>
+      <section><h1>Container 03</h1><p>Joins should remain continuous even though the scroll target is not the document.</p></section>
+      <section><h1>Container 04</h1><p>This final panel confirms exact bottom alignment.</p></section>
+    </main>
+  </body>
+</html>

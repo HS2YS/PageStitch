@@ -26,50 +26,30 @@ export function maximumPartHeight(width) {
   );
 }
 
-export async function decodeCaptureSources(records) {
-  const bitmaps = await Promise.all(records.map((record) => createImageBitmap(record.blob)));
-  let top = 0;
-  return records.map((record, index) => {
-    const source = {
-      ...record,
-      top,
-      bitmap: bitmaps[index]
-    };
-    top += record.height;
-    return source;
-  });
-}
-
-export function closeCaptureSources(sources) {
-  for (const source of sources) source.bitmap?.close?.();
-}
-
-export function drawSourceRegion(context, sources, region, destination) {
-  const scaleY = destination.height / region.height;
-  for (const source of sources) {
-    const intersectionTop = Math.max(region.y, source.top);
-    const intersectionBottom = Math.min(region.y + region.height, source.top + source.height);
-    if (intersectionBottom <= intersectionTop) continue;
-
-    const sourceY = intersectionTop - source.top;
-    const sourceHeight = intersectionBottom - intersectionTop;
-    const destinationY = destination.y + (intersectionTop - region.y) * scaleY;
-    context.drawImage(
-      source.bitmap,
-      region.x,
-      sourceY,
-      region.width,
-      sourceHeight,
-      destination.x,
-      destinationY,
-      destination.width,
-      sourceHeight * scaleY
+export function captureRecordIntersections(records, region) {
+  const intersections = [];
+  let sourceTop = 0;
+  for (const record of records) {
+    const intersectionTop = Math.max(region.y, sourceTop);
+    const intersectionBottom = Math.min(
+      region.y + region.height,
+      sourceTop + record.height
     );
+    if (intersectionBottom > intersectionTop) {
+      intersections.push({
+        record,
+        sourceY: intersectionTop - sourceTop,
+        sourceHeight: intersectionBottom - intersectionTop,
+        destinationOffsetY: intersectionTop - region.y
+      });
+    }
+    sourceTop += record.height;
   }
+  return intersections;
 }
 
-export function renderCaptureRegion({
-  sources,
+export async function renderCaptureRegionFromRecords({
+  records,
   annotations = [],
   region,
   targetWidth = region.width
@@ -81,12 +61,26 @@ export function renderCaptureRegion({
   const context = canvas.getContext("2d", { alpha: false });
   context.fillStyle = "#ffffff";
   context.fillRect(0, 0, canvas.width, canvas.height);
-  drawSourceRegion(context, sources, region, {
-    x: 0,
-    y: 0,
-    width: canvas.width,
-    height: canvas.height
-  });
+
+  for (const intersection of captureRecordIntersections(records, region)) {
+    const bitmap = await createImageBitmap(intersection.record.blob);
+    try {
+      context.drawImage(
+        bitmap,
+        region.x,
+        intersection.sourceY,
+        region.width,
+        intersection.sourceHeight,
+        0,
+        intersection.destinationOffsetY * scale,
+        canvas.width,
+        intersection.sourceHeight * scale
+      );
+    } finally {
+      bitmap.close?.();
+    }
+  }
+
   drawAnnotations(context, annotations, {
     offset: { x: region.x, y: region.y },
     viewport: region,

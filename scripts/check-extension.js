@@ -37,6 +37,7 @@ function parseJson(path) {
 
 const files = filesUnder(root);
 const manifest = parseJson(join(root, "manifest.json"));
+const packageJson = parseJson(join(root, "package.json"));
 
 for (const file of files.filter((path) => path.endsWith(".json"))) {
   parseJson(file);
@@ -66,6 +67,9 @@ if (manifest) {
   if (manifest.manifest_version !== 3) fail("manifest.json must use Manifest V3.");
   if (!manifest.permissions?.includes("activeTab")) fail("manifest.json must include activeTab.");
   if (manifest.host_permissions?.length) fail("Host permissions are intentionally not allowed.");
+  if (packageJson && packageJson.version !== manifest.version) {
+    fail("package.json and manifest.json versions differ.");
+  }
 }
 
 const english = parseJson(join(root, "_locales/en/messages.json"));
@@ -100,7 +104,7 @@ for (const file of files.filter((path) => path.endsWith(".html"))) {
     }
   }
   if (english) {
-    for (const match of html.matchAll(/\bdata-i18n(?:-title|-placeholder)?="([^"]+)"/g)) {
+    for (const match of html.matchAll(/\bdata-i18n(?:-title|-placeholder|-aria-label)?="([^"]+)"/g)) {
       if (!english[match[1]]) {
         fail(`${relative(root, file)} references missing locale key: ${match[1]}`);
       }
@@ -110,11 +114,19 @@ for (const file of files.filter((path) => path.endsWith(".html"))) {
 
 for (const file of files.filter((path) => path.endsWith(".js"))) {
   const source = readFileSync(file, "utf8");
+  const relativeFile = relative(root, file);
   if (/\b(?:eval|Function)\s*\(/.test(source)) {
-    fail(`${relative(root, file)} uses dynamic code execution.`);
+    fail(`${relativeFile} uses dynamic code execution.`);
   }
   if (/\bimport\s*\(\s*["']https?:/i.test(source)) {
-    fail(`${relative(root, file)} imports remote code.`);
+    fail(`${relativeFile} imports remote code.`);
+  }
+  if (
+    !relativeFile.startsWith("scripts/") &&
+    !relativeFile.startsWith("test/") &&
+    /\b(?:fetch|XMLHttpRequest|WebSocket|EventSource|sendBeacon)\b/.test(source)
+  ) {
+    fail(`${relativeFile} contains a network API; captures must remain local.`);
   }
 }
 
