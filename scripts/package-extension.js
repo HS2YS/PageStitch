@@ -20,6 +20,7 @@ const runtimePaths = [
   "assets/icon-16.png",
   "assets/icon-32.png",
   "assets/icon-48.png",
+  "assets/icon-64.png",
   "assets/icon-128.png",
   "background",
   "content",
