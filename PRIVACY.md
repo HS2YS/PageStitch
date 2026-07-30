@@ -54,4 +54,4 @@ If PageStitch's data practices materially change, this policy and the in-product
 
 ## Contact
 
-Before publication, the publisher must replace this paragraph with a monitored support email address or support-page URL. The same contact destination should be supplied to the Chrome Web Store and Opera Add-ons dashboards.
+Support Service: s.o.v.a@hs2ys.ru
