@@ -2,6 +2,8 @@ export const DB_NAME = "pagestitch";
 export const DB_VERSION = 1;
 export const SESSION_STORE = "sessions";
 export const SEGMENT_STORE = "segments";
+export const PRIVACY_CONSENT_KEY = "privacyConsentVersion";
+export const PRIVACY_CONSENT_VERSION = "2026-07-30";
 
 export const MESSAGE = Object.freeze({
   START_CAPTURE: "capture:start",

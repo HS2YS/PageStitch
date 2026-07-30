@@ -1,6 +1,6 @@
 # PageStitch
 
-PageStitch is a privacy-first Chromium extension for capturing, editing, and exporting complete web pages. It is an original implementation inspired by the workflow of full-page screenshot tools; it does not use GoFullPage branding, private code, accounts, uploads, analytics, or paid feature gates.
+PageStitch is a privacy-first Chrome and Opera extension for capturing, editing, and exporting complete web pages. It is an original implementation with no accounts, uploads, analytics, or paid feature gates.
 
 ## Features
 
@@ -10,7 +10,7 @@ PageStitch is a privacy-first Chromium extension for capturing, editing, and exp
 - Handles document scrolling and detects large inner scroll containers
 - Pauses CSS animations, neutralizes smooth scrolling, and restores the original page position
 - Hides repeated fixed and sticky elements after their first natural appearance
-- Segmented image assembly for pages that exceed Chromium's single-canvas limit
+- Segmented image assembly for pages that exceed the browser's single-canvas limit
 - Local capture history in IndexedDB
 - Capture library with selection, batch download, and batch deletion
 - Crop, pen, highlighter, rectangle, arrow, text, emoji, and pixelated blur tools
@@ -18,23 +18,23 @@ PageStitch is a privacy-first Chromium extension for capturing, editing, and exp
 - Zoom and fit-to-width preview
 - PNG, JPEG, and multi-page A4/Letter PDF export
 - Smart PDF page boundaries that look for low-detail horizontal gaps
-- Direct clipboard copy for images within Chromium's canvas limits
+- Direct clipboard copy for images within canvas limits
 - Drag-to-desktop PNG for captures within single-canvas limits
 - Auto-download, Save As, Downloads subfolder, and configurable history
 - English and Russian interface
 - Keyboard shortcuts and page context-menu actions
 
-## Install in Chromium
+## Install an unpacked development build
 
-1. Open `chrome://extensions`.
+1. Open `chrome://extensions` in Chrome/Chromium or `opera://extensions` in Opera.
 2. Enable **Developer mode**.
 3. Click **Load unpacked**.
 4. Select this repository folder.
 5. Pin **PageStitch** to the toolbar.
 
-The primary shortcut is `Alt+Shift+P`. Shortcut assignments can be changed at `chrome://extensions/shortcuts`.
+The primary shortcut is `Alt+Shift+P`. Shortcut assignments can be changed from the browser's extensions shortcut page.
 
-## Development
+## Development and store packages
 
 PageStitch uses plain Manifest V3 JavaScript and has no runtime or build dependencies.
 
@@ -43,11 +43,18 @@ npm run verify
 npm run package
 ```
 
-The verification command validates the manifest, locale parity, CSP-safe HTML, JavaScript syntax, and unit tests. The package command creates and integrity-checks a versioned ZIP in `dist/`.
+`npm run package` creates two minimal, integrity-checked archives:
+
+- `dist/pagestitch-<version>-chrome.zip`
+- `dist/pagestitch-<version>-opera.zip`
+
+Use `npm run package:chrome` or `npm run package:opera` to build one target. The Opera archive replaces Chrome's minimum-version field with `minimum_opera_version: "95"`. Store archives contain runtime files and the required MIT license notice; source documentation, tests, and packaging scripts are excluded.
+
+The verification command validates the manifest, localized metadata limits, locale parity, CSP-safe HTML, JavaScript syntax, permission allowlist, and unit tests.
 
 For a manual capture test, open `test/fixtures/tall-page.html` through a local HTTP server or a regular `file://` tab with file access enabled for the extension.
 
-The full manual verification matrix is in [`docs/SMOKE_TEST.md`](docs/SMOKE_TEST.md), and the current capability audit is in [`docs/FEATURE_PARITY.md`](docs/FEATURE_PARITY.md).
+The full manual verification matrix is in [`docs/SMOKE_TEST.md`](docs/SMOKE_TEST.md). Publication copy, permission justifications, and the release checklist are in [`store/README.md`](store/README.md).
 
 ## Architecture
 
@@ -61,11 +68,13 @@ Captured page data never leaves the browser.
 
 ## Browser support
 
-The manifest targets Chromium 109 or newer because local image assembly uses the Manifest V3 Offscreen API. Chrome, Chromium, Brave, Vivaldi, Opera, and current Microsoft Edge should be compatible, subject to each browser's extension policies.
+The Chrome manifest targets Chrome/Chromium 109 or newer. The Opera store package targets Opera 95 or newer; Opera 95 is Chromium 109-based and supports the required Manifest V3 Offscreen API. Settings use sync storage when the browser supports it and automatically fall back to local extension storage.
+
+Other Chromium-based browsers may work but are not store targets in this repository.
 
 ## Known platform limits
 
-- Chromium does not permit content scripts on browser-internal pages such as `chrome://extensions` or the Chrome Web Store.
+- Browsers do not permit content scripts on internal pages such as `chrome://extensions`, `opera://extensions`, or extension-store pages.
 - The source tab must remain active during a full-page capture because `captureVisibleTab` captures the active tab in its window.
 - Very long images are exported as numbered PNG/JPEG parts; PDF export remains multi-page.
 - Cross-origin iframe contents are captured as pixels, but PageStitch cannot inspect or independently scroll a cross-origin frame.

@@ -67,6 +67,20 @@ if (manifest) {
   if (manifest.manifest_version !== 3) fail("manifest.json must use Manifest V3.");
   if (!manifest.permissions?.includes("activeTab")) fail("manifest.json must include activeTab.");
   if (manifest.host_permissions?.length) fail("Host permissions are intentionally not allowed.");
+  if (manifest.minimum_chrome_version !== "109") {
+    fail("manifest.json must target Chrome 109 for the Offscreen API.");
+  }
+  const versionParts = manifest.version?.split(".") || [];
+  if (
+    versionParts.length < 1 ||
+    versionParts.length > 4 ||
+    versionParts.some((part) =>
+      !/^(?:0|[1-9]\d*)$/.test(part) ||
+      Number(part) > 65535
+    )
+  ) {
+    fail("manifest.json version must contain 1–4 integer components from 0 to 65535.");
+  }
   if (packageJson && packageJson.version !== manifest.version) {
     fail("package.json and manifest.json versions differ.");
   }
@@ -87,8 +101,14 @@ if (english && russian) {
       fail(`Locale substitution slots differ for "${key}".`);
     }
   }
-  if (english.appName?.message.length > 75) fail("Localized extension name exceeds 75 characters.");
-  if (english.appDescription?.message.length > 132) fail("Localized extension description exceeds 132 characters.");
+  for (const [locale, messages] of [["en", english], ["ru", russian]]) {
+    if (messages.appName?.message.length > 45) {
+      fail(`${locale} extension name exceeds Opera's 45-character limit.`);
+    }
+    if (messages.appDescription?.message.length > 132) {
+      fail(`${locale} extension description exceeds the 132-character limit.`);
+    }
+  }
 }
 
 for (const file of files.filter((path) => path.endsWith(".html"))) {
@@ -150,6 +170,11 @@ if (manifest && english) {
   for (const permission of manifest.permissions || []) {
     if (!allowedPermissions.has(permission)) {
       fail(`manifest.json contains unexpected permission: ${permission}`);
+    }
+  }
+  for (const permission of allowedPermissions) {
+    if (!manifest.permissions?.includes(permission)) {
+      fail(`manifest.json is missing expected permission: ${permission}`);
     }
   }
 }

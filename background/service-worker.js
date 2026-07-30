@@ -2,7 +2,9 @@ import {
   CAPTURE_MODE,
   MAX_CAPTURE_STEPS,
   MESSAGE,
-  MIN_CAPTURE_INTERVAL_MS
+  MIN_CAPTURE_INTERVAL_MS,
+  PRIVACY_CONSENT_KEY,
+  PRIVACY_CONSENT_VERSION
 } from "../shared/constants.js";
 import { trimHistory } from "../shared/db.js";
 import { getSettings } from "../shared/settings.js";
@@ -164,10 +166,22 @@ function assertCapturableTab(tab) {
     }
   })();
   if (!["http:", "https:", "file:", "ftp:"].includes(protocol)) {
-    const error = new Error("Chromium does not allow scripts on this page.");
+    const error = new Error("The browser does not allow scripts on this page.");
     error.code = "RESTRICTED_PAGE";
     throw error;
   }
+}
+
+async function hasPrivacyConsent() {
+  const stored = await chrome.storage.local.get(PRIVACY_CONSENT_KEY);
+  return stored[PRIVACY_CONSENT_KEY] === PRIVACY_CONSENT_VERSION;
+}
+
+async function openPrivacySetup() {
+  await chrome.tabs.create({
+    url: chrome.runtime.getURL("onboarding/onboarding.html"),
+    active: true
+  });
 }
 
 async function throttledVisibleCapture(windowId) {
@@ -268,7 +282,7 @@ async function captureFullPage(capture) {
     });
     metrics = { ...metrics, ...scrolled };
     if (metrics.actualY === lastActualPosition && step > 1) {
-      const error = new Error("The page stopped scrolling before Chromium reached its bottom.");
+      const error = new Error("The page stopped scrolling before the browser reached its bottom.");
       error.code = "SCROLL_STUCK";
       throw error;
     }
@@ -435,6 +449,10 @@ async function beginCapture(mode, tabOverride = null) {
   if (mode !== CAPTURE_MODE.VISIBLE) {
     assertCapturableTab(tab);
   }
+  if (!(await hasPrivacyConsent())) {
+    await openPrivacySetup();
+    return { consentRequired: true };
+  }
 
   const capture = {
     id: createId(),
@@ -538,7 +556,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
   if (request.type === MESSAGE.START_CAPTURE) {
     beginCapture(request.mode)
-      .then((capture) => sendResponse({ ok: true, id: capture.id }))
+      .then((capture) => sendResponse({
+        ok: true,
+        id: capture.id || null,
+        consentRequired: Boolean(capture.consentRequired)
+      }))
       .catch((error) => sendResponse({ error: makeSerializableError(error) }));
     return true;
   }
@@ -595,7 +617,7 @@ chrome.runtime.onStartup.addListener(() => {
 });
 
 chrome.storage.onChanged.addListener((changes, areaName) => {
-  if (areaName === "sync" && changes.toolbarAction) {
+  if (["sync", "local"].includes(areaName) && changes.toolbarAction) {
     applyToolbarBehavior();
   }
 });

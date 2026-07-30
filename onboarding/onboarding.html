@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title data-i18n="privacySetupTitle">Before your first capture</title>
+    <link rel="stylesheet" href="onboarding.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="consent-card" aria-labelledby="page-title">
+        <header class="brand-row">
+          <img src="../assets/icon-48.png" width="48" height="48" alt="">
+          <div>
+            <strong>PageStitch</strong>
+            <span data-i18n="privateLocal">100% local · no uploads</span>
+          </div>
+        </header>
+
+        <div class="intro">
+          <span class="eyebrow" data-i18n="privacySetupEyebrow">Privacy setup</span>
+          <h1 id="page-title" data-i18n="privacySetupTitle">Before your first capture</h1>
+          <p data-i18n="privacySetupIntro">
+            PageStitch needs to read the visible pixels, title, and URL of the page you choose to capture.
+          </p>
+        </div>
+
+        <div class="data-grid">
+          <article>
+            <span class="step" aria-hidden="true">01</span>
+            <h2 data-i18n="privacyLocalTitle">Processed in your browser</h2>
+            <p data-i18n="privacyLocalCopy">
+              Screenshots are assembled and edited locally. Nothing is sent to PageStitch or another server.
+            </p>
+          </article>
+          <article>
+            <span class="step" aria-hidden="true">02</span>
+            <h2 data-i18n="privacyStoredTitle">Saved under your control</h2>
+            <p data-i18n="privacyStoredCopy">
+              Captures, page titles, URLs, and annotations stay in local history until you delete them or the history limit removes them.
+            </p>
+          </article>
+          <article>
+            <span class="step" aria-hidden="true">03</span>
+            <h2 data-i18n="privacySettingsTitle">Settings may sync</h2>
+            <p data-i18n="privacySettingsCopy">
+              Non-sensitive preferences may sync through your browser account when browser sync is available.
+            </p>
+          </article>
+        </div>
+
+        <p class="assurance" data-i18n="privacyAssurance">
+          No analytics, ads, account, data sale, remote code, or background page monitoring.
+        </p>
+
+        <div class="actions">
+          <button id="enable-button" class="primary-button" type="button" data-i18n="enablePageStitch">
+            Enable PageStitch
+          </button>
+          <button id="close-button" class="secondary-button" type="button" data-i18n="notNow">
+            Not now
+          </button>
+        </div>
+        <p id="status" class="status" role="status" hidden data-i18n="privacyEnabled">
+          PageStitch is enabled. Close this tab and capture the page again.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="onboarding.js"></script>
+  </body>
+</html>

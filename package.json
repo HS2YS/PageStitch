@@ -1,12 +1,14 @@
 {
   "name": "pagestitch",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
-  "description": "A privacy-first full-page screenshot extension for Chromium.",
+  "description": "A privacy-first full-page screenshot extension for Chrome and Opera.",
   "scripts": {
     "check": "node scripts/check-extension.js",
-    "package": "node scripts/package-extension.js",
+    "package": "node scripts/package-extension.js --target=both",
+    "package:chrome": "node scripts/package-extension.js --target=chrome",
+    "package:opera": "node scripts/package-extension.js --target=opera",
     "test": "node --test",
     "verify": "npm run check && npm test"
   },

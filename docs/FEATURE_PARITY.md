@@ -56,7 +56,9 @@ This document tracks the user-visible capabilities advertised by current full-pa
 | --- | --- | --- |
 | No account, uploads, analytics, or remote code | Implemented | No networking code or remote imports; `PRIVACY.md`; automated verifier. |
 | No persistent all-site host permission | Implemented | `activeTab` and `scripting`; no `host_permissions`. |
-| Manifest V3 | Implemented | MV3 service worker and Offscreen API, minimum Chromium 109. |
+| Manifest V3 | Implemented | MV3 service worker and Offscreen API; Chrome 109 and Opera 95 minimum packages. |
 | English and Russian UI | Implemented | Locale parity is checked automatically. |
-| Chrome-family packaging | Implemented | Verified ZIP with the manifest at archive root. |
-| Runtime smoke test in a user Chromium profile | Awaiting manual evidence | The available automated browser environment blocks local extension and `file://` URLs. Use the checklist in `docs/SMOKE_TEST.md`. |
+| Chrome and Opera packaging | Implemented | Separate minimal, verified ZIP files with target-specific minimum browser fields and the manifest at archive root. |
+| First-use data disclosure | Implemented | Capture is gated until the user affirmatively enables local handling of page pixels, title, URL, and annotations. |
+| Settings storage fallback | Implemented | Browser sync is preferred; local extension storage is used when sync is unavailable. |
+| Runtime smoke test in user Chrome and Opera profiles | Awaiting manual evidence | Complete the browser/OS matrix in `docs/SMOKE_TEST.md` before submission. |

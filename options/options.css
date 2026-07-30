@@ -270,6 +270,18 @@ h2 {
   line-height: 1.55;
 }
 
+.privacy-link {
+  margin-top: 10px;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid currentColor;
+  background: transparent;
+  color: #286d61;
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 750;
+}
+
 .toast {
   position: fixed;
   right: 22px;

@@ -1,8 +1,19 @@
 import { DEFAULT_SETTINGS } from "./constants.js";
 
+function availableStorageAreas() {
+  return [chrome.storage?.sync, chrome.storage?.local].filter(Boolean);
+}
+
 export async function getSettings() {
-  const stored = await chrome.storage.sync.get(DEFAULT_SETTINGS);
-  return { ...DEFAULT_SETTINGS, ...stored };
+  for (const area of availableStorageAreas()) {
+    try {
+      const stored = await area.get(DEFAULT_SETTINGS);
+      return { ...DEFAULT_SETTINGS, ...stored };
+    } catch {
+      // Opera versions without storage.sync fall back to local extension storage.
+    }
+  }
+  return { ...DEFAULT_SETTINGS };
 }
 
 export async function setSettings(patch) {
@@ -10,6 +21,14 @@ export async function setSettings(patch) {
   const next = Object.fromEntries(
     Object.entries(patch).filter(([key]) => allowed.includes(key))
   );
-  await chrome.storage.sync.set(next);
-  return getSettings();
+  for (const area of availableStorageAreas()) {
+    try {
+      await area.set(next);
+      const stored = await area.get(DEFAULT_SETTINGS);
+      return { ...DEFAULT_SETTINGS, ...stored };
+    } catch {
+      // Try the next supported storage area.
+    }
+  }
+  throw new Error("Extension settings storage is unavailable.");
 }

@@ -72,6 +72,10 @@ async function startCapture(mode) {
     renderState({ status: "error", error: response.error });
     return;
   }
+  if (response?.consentRequired) {
+    window.close();
+    return;
+  }
   setTimeout(() => window.close(), 180);
 }
 

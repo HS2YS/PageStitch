@@ -63,3 +63,8 @@ quality.addEventListener("input", updateQualityOutput);
 document.querySelector("#shortcuts-button").addEventListener("click", () => {
   chrome.tabs.create({ url: "chrome://extensions/shortcuts" });
 });
+document.querySelector("#privacy-details-button").addEventListener("click", () => {
+  chrome.tabs.create({
+    url: chrome.runtime.getURL("onboarding/onboarding.html?review=1")
+  });
+});
