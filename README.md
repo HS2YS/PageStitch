@@ -37,6 +37,8 @@ The primary shortcut is `Alt+Shift+P`. Shortcut assignments can be changed from 
 ## Development and store packages
 
 PageStitch uses plain Manifest V3 JavaScript and has no runtime or build dependencies.
+See [`BUILD.md`](BUILD.md) for the complete reference environment and
+step-by-step command-line build instructions.
 
 ```sh
 npm run verify
