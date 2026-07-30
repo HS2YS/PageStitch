@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_appName__",
+  "short_name": "PageStitch",
+  "version": "0.1.0",
+  "description": "__MSG_appDescription__",
+  "default_locale": "en",
+  "minimum_chrome_version": "109",
+  "permissions": [
+    "activeTab",
+    "clipboardWrite",
+    "contextMenus",
+    "downloads",
+    "offscreen",
+    "scripting",
+    "storage",
+    "unlimitedStorage"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "action": {
+    "default_title": "__MSG_captureFullPage__",
+    "default_icon": {
+      "16": "assets/icon-16.png",
+      "32": "assets/icon-32.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon-16.png",
+    "32": "assets/icon-32.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  },
+  "commands": {
+    "capture-full-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+P",
+        "mac": "Alt+Shift+P"
+      },
+      "description": "__MSG_captureFullPage__"
+    },
+    "capture-visible-area": {
+      "suggested_key": {
+        "default": "Alt+Shift+V",
+        "mac": "Alt+Shift+V"
+      },
+      "description": "__MSG_captureVisible__"
+    }
+  },
+  "options_page": "options/options.html"
+}

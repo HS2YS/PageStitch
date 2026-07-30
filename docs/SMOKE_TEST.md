@@ -1,0 +1,51 @@
+# Chromium smoke-test checklist
+
+Use a disposable Chromium profile if possible.
+
+## Install
+
+1. Open `chrome://extensions`.
+2. Enable **Developer mode**.
+3. Click **Load unpacked** and choose the PageStitch repository folder.
+4. Confirm the extension loads without manifest or service-worker errors.
+5. Pin PageStitch to the toolbar.
+
+## Full-page capture
+
+1. Serve `test/fixtures` from a local HTTP server or open any long public page.
+2. Click the PageStitch icon once.
+3. Confirm the page scrolls, the HUD/badge updates, and the original scroll position is restored.
+4. Confirm the editor opens and the sticky header appears only once.
+5. Inspect every join between sections for gaps, duplicated strips, and scale changes.
+
+## Same-origin iframe
+
+1. Open `test/fixtures/frame-host.html` from a local HTTP server.
+2. Capture the full page.
+3. Confirm all four iframe sections appear and its sticky header is not repeated.
+
+## Editor and export
+
+1. Add a pen stroke, highlighter, rectangle, arrow, text, emoji, and blur region.
+2. Select an annotation, move it, delete it, then use undo/redo.
+3. Crop the result.
+4. Export PNG, JPEG, A4 portrait PDF, and Letter landscape PDF.
+5. Open each file and verify dimensions, annotations, crop, PDF page count, metadata, and final-page content.
+6. Copy a normal-sized capture to the clipboard.
+7. Drag the editor's **Drag** control to the desktop or file manager.
+
+## Long-page and library behavior
+
+1. Capture a page tall enough to create multiple internal segments.
+2. Confirm the editor shows a continuous image.
+3. Export it and confirm numbered files are produced where required.
+4. Open the capture library from the editor or extension action context menu.
+5. Select several captures, batch-download them, then batch-delete test captures.
+6. Change the history limit and confirm old captures are trimmed.
+
+## Settings and privacy
+
+1. Switch toolbar behavior between immediate capture and popup menu.
+2. Test automatic download, Save As on/off, JPEG quality, and a Downloads subfolder.
+3. Inspect `chrome://extensions` and confirm PageStitch has no persistent access to all sites.
+4. Inspect the service-worker console for uncaught errors after all scenarios.

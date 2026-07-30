@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main class="popup-shell">
+      <header class="topbar">
+        <div class="brand">
+          <img src="../assets/icon-32.png" width="32" height="32" alt="">
+          <div>
+            <strong>PageStitch</strong>
+            <span data-i18n="privateLocal">100% local · no uploads</span>
+          </div>
+        </div>
+        <button class="icon-button" id="settings-button" type="button" data-i18n-title="settings">
+          <span aria-hidden="true">⚙</span>
+        </button>
+      </header>
+
+      <section id="capture-panel" class="capture-panel" aria-labelledby="capture-heading">
+        <h1 id="capture-heading" data-i18n="capture">Capture</h1>
+        <button class="primary-action capture-action" type="button" data-mode="full">
+          <span class="action-icon full-icon" aria-hidden="true">
+            <span></span><i></i>
+          </span>
+          <span class="action-copy">
+            <strong data-i18n="captureFullPage">Capture full page</strong>
+            <small>Alt + Shift + P</small>
+          </span>
+          <span class="action-arrow" aria-hidden="true">→</span>
+        </button>
+
+        <div class="secondary-grid">
+          <button class="secondary-action capture-action" type="button" data-mode="visible">
+            <span class="action-icon visible-icon" aria-hidden="true"></span>
+            <span data-i18n="captureVisible">Capture visible area</span>
+          </button>
+          <button class="secondary-action capture-action" type="button" data-mode="region">
+            <span class="action-icon region-icon" aria-hidden="true"></span>
+            <span data-i18n="captureRegion">Select an area</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="status-panel" class="status-panel" hidden aria-live="polite">
+        <div class="status-orbit" aria-hidden="true">
+          <span></span>
+        </div>
+        <strong id="status-title" data-i18n="capturing">Capturing…</strong>
+        <span id="status-detail" data-i18n="preparing">Preparing page…</span>
+        <div class="progress-track">
+          <div id="progress-bar" class="progress-bar"></div>
+        </div>
+        <button id="cancel-button" class="text-button" type="button" data-i18n="cancel">Cancel</button>
+      </section>
+
+      <section id="error-panel" class="error-panel" hidden role="alert">
+        <span class="error-mark" aria-hidden="true">!</span>
+        <div>
+          <strong data-i18n="captureFailed">Capture failed</strong>
+          <p id="error-message"></p>
+        </div>
+      </section>
+
+      <section class="recent-section" aria-labelledby="recent-heading">
+        <div class="section-heading">
+          <h2 id="recent-heading" data-i18n="openLastCapture">Open last capture</h2>
+        </div>
+        <button id="recent-capture" class="recent-card" type="button" hidden>
+          <span class="thumbnail-wrap">
+            <img id="recent-thumbnail" alt="">
+          </span>
+          <span class="recent-copy">
+            <strong id="recent-title"></strong>
+            <small id="recent-meta"></small>
+          </span>
+          <span class="recent-arrow" aria-hidden="true">↗</span>
+        </button>
+        <p id="empty-recent" class="empty-recent" data-i18n="noCaptures">
+          Your latest captures will appear here.
+        </p>
+      </section>
+    </main>
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

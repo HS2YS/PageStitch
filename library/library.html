@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch capture library</title>
+    <link rel="stylesheet" href="library.css">
+  </head>
+  <body>
+    <header class="library-header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="../assets/icon-48.png" width="42" height="42" alt="">
+          <div>
+            <span class="eyebrow">PageStitch</span>
+            <h1 data-i18n="libraryTitle">Capture library</h1>
+          </div>
+        </div>
+        <div class="header-actions">
+          <span id="storage-summary" class="storage-summary"></span>
+          <button id="settings-button" class="secondary-button" type="button" data-i18n="settings">Settings</button>
+        </div>
+      </div>
+    </header>
+
+    <main class="library-main">
+      <section class="library-intro">
+        <div>
+          <h2 data-i18n="libraryHeading">Your screenshots, kept locally</h2>
+          <p data-i18n="libraryCopy">Open a capture to edit it, or select several for a batch download or deletion.</p>
+        </div>
+        <label class="select-all">
+          <input id="select-all" type="checkbox">
+          <span data-i18n="selectAll">Select all</span>
+        </label>
+      </section>
+
+      <div id="loading" class="loading-state" role="status">
+        <span class="loader" aria-hidden="true"></span>
+        <span data-i18n="loadingLibrary">Loading local captures…</span>
+      </div>
+
+      <section id="capture-grid" class="capture-grid" hidden aria-live="polite"></section>
+
+      <section id="empty-state" class="empty-state" hidden>
+        <div class="empty-mark" aria-hidden="true">
+          <span></span>
+        </div>
+        <h2 data-i18n="emptyLibrary">No captures yet</h2>
+        <p data-i18n="emptyLibraryCopy">Open any web page and click the PageStitch toolbar icon to create your first full-page screenshot.</p>
+      </section>
+    </main>
+
+    <div id="batch-bar" class="batch-bar" hidden>
+      <span id="selection-count"></span>
+      <div>
+        <button id="batch-download" class="secondary-button" type="button" data-i18n="downloadSelected">Download selected</button>
+        <button id="batch-delete" class="danger-button" type="button" data-i18n="deleteSelected">Delete selected</button>
+      </div>
+    </div>
+
+    <template id="capture-card-template">
+      <article class="capture-card">
+        <label class="card-select">
+          <input type="checkbox">
+          <span></span>
+        </label>
+        <button class="card-open" type="button">
+          <span class="thumbnail">
+            <img alt="">
+            <span class="mode-badge"></span>
+          </span>
+          <span class="card-copy">
+            <strong></strong>
+            <small class="source"></small>
+            <span class="card-meta"></span>
+          </span>
+        </button>
+        <div class="card-actions">
+          <button class="open-action" type="button" data-i18n="openCapture">Open</button>
+          <button class="delete-action" type="button" data-i18n-title="deleteCapture">×</button>
+        </div>
+      </article>
+    </template>
+
+    <div id="toast" class="toast" hidden role="status"></div>
+    <script type="module" src="library.js"></script>
+  </body>
+</html>

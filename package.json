@@ -1,0 +1,16 @@
+{
+  "name": "pagestitch",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A privacy-first full-page screenshot extension for Chromium.",
+  "scripts": {
+    "check": "node scripts/check-extension.js",
+    "test": "node --test",
+    "verify": "npm run check && npm test"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "license": "MIT"
+}

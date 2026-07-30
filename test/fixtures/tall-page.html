@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch capture fixture</title>
+    <style>
+      * { box-sizing: border-box; }
+      html { font-family: system-ui, sans-serif; color: #172033; }
+      body { margin: 0; background: #f7f7fb; }
+      header {
+        position: sticky; z-index: 2; top: 0; display: flex; height: 64px;
+        align-items: center; justify-content: space-between; padding: 0 7vw;
+        background: rgba(255,255,255,.92); border-bottom: 1px solid #e5e7ef;
+      }
+      main { width: min(980px, 86vw); margin: 0 auto; }
+      .hero { display: grid; min-height: 720px; place-items: center; text-align: center; }
+      h1 { max-width: 700px; margin: 0; font-size: clamp(44px, 8vw, 92px); line-height: .96; }
+      .gradient { color: transparent; background: linear-gradient(135deg,#6d4aff,#13b9ce); background-clip: text; }
+      .cards { display: grid; gap: 28px; padding-bottom: 120px; }
+      article {
+        min-height: 520px; padding: 64px; border: 1px solid #e5e7ef;
+        border-radius: 28px; background: white; box-shadow: 0 20px 50px rgba(28,36,56,.06);
+      }
+      article:nth-child(2n) { background: #202637; color: white; }
+      article h2 { margin: 0; font-size: 42px; }
+      article p { max-width: 620px; color: #747d90; font-size: 20px; line-height: 1.6; }
+      article:nth-child(2n) p { color: #b6bece; }
+      footer { padding: 80px 7vw; background: #6845ef; color: white; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <header><strong>Capture fixture</strong><span>Sticky header</span></header>
+    <main>
+      <section class="hero">
+        <div>
+          <p>PageStitch test page</p>
+          <h1>A deliberately <span class="gradient">long page</span> for reliable capture.</h1>
+        </div>
+      </section>
+      <section class="cards">
+        <article><h2>Section 01</h2><p>Checks the first viewport, typography, and white surfaces.</p></article>
+        <article><h2>Section 02</h2><p>Checks a dark section and the sticky header treatment after scrolling.</p></article>
+        <article><h2>Section 03</h2><p>Checks that sequential frames meet without gaps or duplicated pixels.</p></article>
+        <article><h2>Section 04</h2><p>Checks the final partial viewport and exact bottom alignment.</p></article>
+      </section>
+    </main>
+    <footer><strong>End of capture fixture</strong></footer>
+  </body>
+</html>

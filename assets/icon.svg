@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-labelledby="icon-title">
+  <title id="icon-title">PageStitch page capture icon</title>
+  <defs>
+    <linearGradient id="background" x1="18" y1="14" x2="112" y2="116" gradientUnits="userSpaceOnUse" color-interpolation="linearRGB">
+      <stop offset="0" stop-color="#8b5cf6"/>
+      <stop offset=".34" stop-color="#7357ed"/>
+      <stop offset=".68" stop-color="#3b82d8"/>
+      <stop offset="1" stop-color="#12b8c8"/>
+    </linearGradient>
+    <linearGradient id="paper" x1="46" y1="26" x2="82" y2="103" gradientUnits="userSpaceOnUse" color-interpolation="linearRGB">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset=".45" stop-color="#f8f9ff"/>
+      <stop offset=".78" stop-color="#eef2ff"/>
+      <stop offset="1" stop-color="#dce6ff"/>
+    </linearGradient>
+    <linearGradient id="stitch" x1="42" y1="65" x2="88" y2="65" gradientUnits="userSpaceOnUse" color-interpolation="linearRGB">
+      <stop offset="0" stop-color="#6938ef"/>
+      <stop offset=".35" stop-color="#7257ff"/>
+      <stop offset=".7" stop-color="#16a5d0"/>
+      <stop offset="1" stop-color="#0dc5c1"/>
+    </linearGradient>
+    <filter id="paper-shadow" x="-35%" y="-25%" width="170%" height="170%" color-interpolation-filters="linearRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blur"/>
+      <feOffset in="blur" dx="0" dy="5" result="offset"/>
+      <feFlood flood-color="#25135f" flood-opacity=".28" result="color"/>
+      <feComposite in="color" in2="offset" operator="in" result="shadow"/>
+      <feMerge>
+        <feMergeNode in="shadow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect x="6" y="6" width="116" height="116" rx="29" fill="url(#background)"/>
+  <path d="M42 22h34l14 14v68a7 7 0 0 1-7 7H42a7 7 0 0 1-7-7V29a7 7 0 0 1 7-7Z" fill="url(#paper)" filter="url(#paper-shadow)"/>
+  <path d="M76 22v11a7 7 0 0 0 7 7h7Z" fill="#cbd8ff"/>
+  <path d="M47 48h25M47 55h33" fill="none" stroke="#b7c3e6" stroke-width="4" stroke-linecap="round"/>
+  <path d="M42 67h8m6 0h8m6 0h8m6 0h4" fill="none" stroke="url(#stitch)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M47 80h31M47 88h24M47 96h33" fill="none" stroke="#b7c3e6" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="52.5" cy="67" r="3.5" fill="#ffffff" stroke="#7655f7" stroke-width="2"/>
+  <circle cx="66.5" cy="67" r="3.5" fill="#ffffff" stroke="#4778e3" stroke-width="2"/>
+  <circle cx="80.5" cy="67" r="3.5" fill="#ffffff" stroke="#13afcb" stroke-width="2"/>
+  <path d="M18 42V27a9 9 0 0 1 9-9h15M110 86v15a9 9 0 0 1-9 9H86" fill="none" stroke="#ffffff" stroke-opacity=".72" stroke-width="4" stroke-linecap="round"/>
+</svg>

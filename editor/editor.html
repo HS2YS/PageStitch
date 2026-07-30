@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch editor</title>
+    <link rel="stylesheet" href="editor.css">
+  </head>
+  <body>
+    <div class="editor-app">
+      <header class="editor-header">
+        <div class="document-identity">
+          <img src="../assets/icon-32.png" width="30" height="30" alt="">
+          <div>
+            <strong id="document-title" data-i18n="editorTitle">Screenshot editor</strong>
+            <span id="document-meta"></span>
+          </div>
+        </div>
+
+        <div class="history-controls" role="group" aria-label="History">
+          <button id="undo-button" class="quiet-button" type="button" data-i18n-title="undo">
+            <span aria-hidden="true">↶</span>
+          </button>
+          <button id="redo-button" class="quiet-button" type="button" data-i18n-title="redo">
+            <span aria-hidden="true">↷</span>
+          </button>
+        </div>
+
+        <div class="zoom-controls" role="group" aria-label="Zoom">
+          <button id="zoom-out" class="quiet-button" type="button" data-i18n-title="zoomOut">−</button>
+          <button id="zoom-fit" class="zoom-value" type="button" data-i18n-title="fit">Fit</button>
+          <button id="zoom-in" class="quiet-button" type="button" data-i18n-title="zoomIn">+</button>
+        </div>
+
+        <div class="header-actions">
+          <a id="drag-button" class="secondary-button drag-button" href="#" draggable="true" aria-disabled="true">
+            <span aria-hidden="true">⠿</span>
+            <span data-i18n="dragToDesktop">Drag</span>
+          </a>
+          <button id="copy-button" class="secondary-button" type="button">
+            <span aria-hidden="true">▣</span>
+            <span data-i18n="copy">Copy</span>
+          </button>
+          <button id="export-button" class="primary-button" type="button">
+            <span data-i18n="export">Export</span>
+            <span aria-hidden="true">↓</span>
+          </button>
+        </div>
+      </header>
+
+      <aside class="tool-rail" aria-label="Annotation tools">
+        <div class="tool-group">
+          <button class="tool-button is-active" type="button" data-tool="select" data-i18n-title="selectTool">
+            <span aria-hidden="true">⌖</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="crop" data-i18n-title="cropTool">
+            <span aria-hidden="true">⌗</span>
+          </button>
+        </div>
+        <div class="rail-rule"></div>
+        <div class="tool-group">
+          <button class="tool-button" type="button" data-tool="pen" data-i18n-title="penTool">
+            <span aria-hidden="true">✎</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="highlight" data-i18n-title="highlightTool">
+            <span aria-hidden="true">▰</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="rectangle" data-i18n-title="rectangleTool">
+            <span aria-hidden="true">□</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="arrow" data-i18n-title="arrowTool">
+            <span aria-hidden="true">↗</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="text" data-i18n-title="textTool">
+            <span aria-hidden="true">T</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="blur" data-i18n-title="blurTool">
+            <span aria-hidden="true">▦</span>
+          </button>
+          <button class="tool-button" type="button" data-tool="emoji" data-i18n-title="emojiTool">
+            <span aria-hidden="true">☺</span>
+          </button>
+        </div>
+      </aside>
+
+      <main id="workspace" class="workspace">
+        <div id="loading-state" class="loading-state" role="status">
+          <span class="loader" aria-hidden="true"></span>
+          <strong data-i18n="loadingCapture">Loading capture…</strong>
+        </div>
+        <div id="missing-state" class="missing-state" hidden>
+          <span aria-hidden="true">!</span>
+          <strong data-i18n="captureMissing">This capture is unavailable or has been deleted.</strong>
+        </div>
+        <div id="stage-stack" class="stage-stack" hidden>
+          <div id="crop-selection" class="crop-selection" hidden>
+            <span id="crop-size"></span>
+          </div>
+        </div>
+      </main>
+
+      <aside class="inspector">
+        <section class="inspector-section">
+          <span class="eyebrow">Style</span>
+          <h2 id="active-tool-label" data-i18n="selectTool">Select</h2>
+          <label class="control-row" id="color-control">
+            <span data-i18n="color">Color</span>
+            <span class="color-field">
+              <input id="color-input" type="color" value="#ef476f">
+              <output id="color-output">#EF476F</output>
+            </span>
+          </label>
+          <label class="control-stack" id="stroke-control">
+            <span>
+              <span data-i18n="stroke">Stroke</span>
+              <output id="stroke-output">4 px</output>
+            </span>
+            <input id="stroke-input" type="range" min="2" max="24" step="1" value="4">
+          </label>
+          <button id="reset-crop" class="inspector-button" type="button" hidden data-i18n="resetCrop">
+            Reset crop
+          </button>
+          <div id="selection-actions" class="selection-actions" hidden>
+            <span id="selection-label"></span>
+            <button id="delete-annotation" class="inspector-button danger-button" type="button" data-i18n="deleteAnnotation">
+              Delete annotation
+            </button>
+          </div>
+          <div id="emoji-palette" class="emoji-palette" hidden aria-label="Emoji">
+            <button type="button">✨</button>
+            <button type="button">✅</button>
+            <button type="button">🔥</button>
+            <button type="button">💡</button>
+            <button type="button">❤️</button>
+            <button type="button">⚠️</button>
+            <button type="button">👀</button>
+            <button type="button">🎯</button>
+          </div>
+        </section>
+
+        <section class="inspector-section capture-info">
+          <span class="eyebrow">Capture</span>
+          <dl>
+            <div><dt>Size</dt><dd id="info-size">—</dd></div>
+            <div><dt>Mode</dt><dd id="info-mode">—</dd></div>
+            <div><dt>Source</dt><dd id="info-source">—</dd></div>
+          </dl>
+        </section>
+
+        <div class="inspector-footer">
+          <button id="open-library" class="inspector-link" type="button" data-i18n="openLibrary">Open capture library</button>
+          <button id="new-capture" class="inspector-link" type="button" data-i18n="openSource">Open source page</button>
+          <button id="delete-capture" class="inspector-link danger" type="button" data-i18n="deleteCapture">
+            Delete capture
+          </button>
+        </div>
+      </aside>
+    </div>
+
+    <dialog id="export-dialog" class="modal">
+      <form id="export-form" method="dialog">
+        <div class="modal-heading">
+          <div>
+            <span class="eyebrow">PageStitch</span>
+            <h2 data-i18n="exportTitle">Export screenshot</h2>
+          </div>
+          <button class="modal-close quiet-button" value="cancel" data-i18n-title="close" type="submit">×</button>
+        </div>
+
+        <div class="export-grid">
+          <label>
+            <span data-i18n="fileFormat">File format</span>
+            <select id="export-format">
+              <option value="png">PNG</option>
+              <option value="jpeg">JPEG</option>
+              <option value="pdf">PDF</option>
+            </select>
+          </label>
+          <label id="export-quality-row">
+            <span data-i18n="quality">Quality</span>
+            <input id="export-quality" type="range" min="0.5" max="1" step="0.02" value="0.92">
+            <output id="export-quality-output">92%</output>
+          </label>
+          <label class="pdf-only">
+            <span data-i18n="pdfPaper">Paper size</span>
+            <select id="pdf-format">
+              <option value="a4">A4</option>
+              <option value="letter">Letter</option>
+            </select>
+          </label>
+          <label class="pdf-only">
+            <span data-i18n="orientation">Orientation</span>
+            <select id="pdf-orientation">
+              <option value="portrait" data-i18n="portrait">Portrait</option>
+              <option value="landscape" data-i18n="landscape">Landscape</option>
+            </select>
+          </label>
+        </div>
+        <label class="check-row pdf-only">
+          <input id="pdf-metadata" type="checkbox" checked>
+          <span data-i18n="includeMetadata">Include title, URL, and capture date</span>
+        </label>
+        <p id="export-summary" class="export-summary"></p>
+        <div class="modal-actions">
+          <button class="secondary-button" value="cancel" type="submit" data-i18n="cancel">Cancel</button>
+          <button id="download-button" class="primary-button" value="default" type="button">
+            <span data-i18n="download">Download</span>
+            <span aria-hidden="true">↓</span>
+          </button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog id="text-dialog" class="modal text-modal">
+      <form id="text-form" method="dialog">
+        <div class="modal-heading">
+          <h2 data-i18n="textPrompt">Enter annotation text</h2>
+          <button class="modal-close quiet-button" value="cancel" data-i18n-title="close" type="submit">×</button>
+        </div>
+        <input id="text-input" type="text" maxlength="160" autocomplete="off">
+        <div class="modal-actions">
+          <button class="secondary-button" value="cancel" type="submit" data-i18n="cancel">Cancel</button>
+          <button class="primary-button" value="default" type="submit">OK</button>
+        </div>
+      </form>
+    </dialog>
+
+    <div id="toast" class="toast" hidden role="status"></div>
+    <script type="module" src="editor.js"></script>
+  </body>
+</html>

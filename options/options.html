@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>PageStitch settings</title>
+    <link rel="stylesheet" href="options.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="brand">
+          <img src="../assets/icon-48.png" width="42" height="42" alt="">
+          <div>
+            <strong>PageStitch</strong>
+            <span data-i18n="optionsTitle">PageStitch settings</span>
+          </div>
+        </div>
+        <span class="local-badge" data-i18n="privateLocal">100% local · no uploads</span>
+      </div>
+    </header>
+
+    <main class="settings-layout">
+      <form id="settings-form">
+        <section class="settings-card">
+          <div class="card-heading">
+            <span class="number">01</span>
+            <div>
+              <h1 data-i18n="outputDefaults">Output defaults</h1>
+              <p>Choose how new captures are named and exported.</p>
+            </div>
+          </div>
+
+          <div class="field-grid">
+            <label class="field">
+              <span data-i18n="defaultFormat">Default image format</span>
+              <select id="format" name="format">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="pdf">PDF</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="quality">Quality</span>
+              <input id="jpeg-quality" name="jpegQuality" type="range" min="0.5" max="1" step="0.02">
+              <small id="quality-output">92%</small>
+            </label>
+          </div>
+
+          <label class="field full-field">
+            <span data-i18n="filename">Filename template</span>
+            <input id="filename-template" name="fileNameTemplate" type="text" maxlength="100">
+            <small data-i18n="filenameHint">Available tokens: {title}, {host}, {date}</small>
+          </label>
+
+          <div class="field-grid lower-grid">
+            <label class="field">
+              <span data-i18n="downloadFolder">Downloads subfolder</span>
+              <input id="download-subfolder" name="downloadSubfolder" type="text" maxlength="80" data-i18n-placeholder="downloadFolderPlaceholder">
+              <small data-i18n="downloadFolderHint">Leave empty to use the default Downloads folder.</small>
+            </label>
+            <label class="field">
+              <span data-i18n="toolbarAction">Toolbar click</span>
+              <select id="toolbar-action" name="toolbarAction">
+                <option value="capture" data-i18n="toolbarCapture">Capture full page immediately</option>
+                <option value="menu" data-i18n="toolbarMenu">Show capture menu</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="check-grid">
+            <label class="check-field">
+              <input id="save-as" name="saveAs" type="checkbox">
+              <span>
+                <strong data-i18n="saveAs">Ask where to save</strong>
+                <small data-i18n="saveAsHint">Show the Save As dialog for single-file exports.</small>
+              </span>
+            </label>
+            <label class="check-field">
+              <input id="auto-download" name="autoDownload" type="checkbox">
+              <span>
+                <strong data-i18n="autoDownload">Download automatically</strong>
+                <small data-i18n="autoDownloadHint">Export with the defaults as soon as capture finishes.</small>
+              </span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card">
+          <div class="card-heading">
+            <span class="number">02</span>
+            <div>
+              <h2 data-i18n="capture">Capture</h2>
+              <p>Give lazy-loaded pages enough time to settle after scrolling.</p>
+            </div>
+          </div>
+          <div class="field-grid">
+            <label class="field">
+              <span data-i18n="captureDelay">Wait after each scroll</span>
+              <select id="capture-delay" name="captureDelay">
+                <option value="300" data-i18n="delayFast">Fast (300 ms)</option>
+                <option value="450" data-i18n="delayBalanced">Balanced (450 ms)</option>
+                <option value="800" data-i18n="delayLazy">Lazy-load friendly (800 ms)</option>
+              </select>
+            </label>
+            <label class="field">
+              <span data-i18n="keepHistory">Keep recent captures</span>
+              <select id="keep-history" name="keepHistory">
+                <option value="3">3</option>
+                <option value="10">10</option>
+                <option value="25">25</option>
+                <option value="50">50</option>
+              </select>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-card compact-card">
+          <div class="card-heading">
+            <span class="number">03</span>
+            <div>
+              <h2 data-i18n="shortcuts">Keyboard shortcuts</h2>
+              <p>Alt + Shift + P — full page · Alt + Shift + V — visible area</p>
+            </div>
+          </div>
+          <button id="shortcuts-button" class="secondary-button" type="button" data-i18n="manageShortcuts">
+            Manage shortcuts in Chromium
+          </button>
+        </section>
+
+        <section class="privacy-card">
+          <span class="privacy-icon" aria-hidden="true">✓</span>
+          <div>
+            <h2 data-i18n="privacy">Privacy</h2>
+            <p data-i18n="privacyCopy">
+              Screenshots stay in your browser. PageStitch has no analytics, account, remote code, or upload server.
+            </p>
+          </div>
+        </section>
+      </form>
+      <div id="toast" class="toast" hidden data-i18n="saved">Settings saved</div>
+    </main>
+    <script type="module" src="options.js"></script>
+  </body>
+</html>
