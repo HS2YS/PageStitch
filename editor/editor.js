@@ -42,7 +42,6 @@ const elements = {
   zoomOut: document.querySelector("#zoom-out"),
   zoomFit: document.querySelector("#zoom-fit"),
   zoomIn: document.querySelector("#zoom-in"),
-  drag: document.querySelector("#drag-button"),
   copy: document.querySelector("#copy-button"),
   export: document.querySelector("#export-button"),
   colorControl: document.querySelector("#color-control"),
@@ -99,9 +98,6 @@ const state = {
   saveTimer: null,
   toastTimer: null,
   exporting: false,
-  dragUrl: null,
-  dragRevision: 0,
-  dragTimer: null,
   previewObserver: null
 };
 
@@ -172,44 +168,6 @@ function scheduleSave() {
     };
     await putSession(state.session);
   }, 250);
-  scheduleDragPreparation();
-}
-
-function scheduleDragPreparation() {
-  clearTimeout(state.dragTimer);
-  const revision = ++state.dragRevision;
-  if (state.dragUrl) URL.revokeObjectURL(state.dragUrl);
-  state.dragUrl = null;
-  elements.drag.href = "#";
-  elements.drag.setAttribute("aria-disabled", "true");
-  state.dragTimer = setTimeout(() => prepareDragImage(revision), 600);
-}
-
-async function prepareDragImage(revision = ++state.dragRevision) {
-  if (!state.session) return;
-  const region = getExportRegion();
-  if (
-    region.height > maximumPartHeight(region.width) ||
-    region.height > MAX_SINGLE_CANVAS_HEIGHT
-  ) {
-    elements.drag.setAttribute("aria-disabled", "true");
-    elements.drag.title = message("dragTooLarge");
-    return;
-  }
-  try {
-    const settings = await getSettings();
-    const canvas = await renderRegion(region);
-    const blob = await canvasToBlob(canvas, "image/png");
-    if (revision !== state.dragRevision) return;
-    if (state.dragUrl) URL.revokeObjectURL(state.dragUrl);
-    state.dragUrl = URL.createObjectURL(blob);
-    elements.drag.href = state.dragUrl;
-    elements.drag.download = buildFilename(settings.fileNameTemplate, state.session, "png");
-    elements.drag.title = message("dragHint");
-    elements.drag.setAttribute("aria-disabled", "false");
-  } catch {
-    elements.drag.setAttribute("aria-disabled", "true");
-  }
 }
 
 function pushHistory() {
@@ -1142,27 +1100,6 @@ function setupEventHandlers() {
   });
   elements.deleteAnnotation.addEventListener("click", deleteSelectedAnnotation);
   elements.copy.addEventListener("click", copyCapture);
-  elements.drag.addEventListener("click", (event) => {
-    event.preventDefault();
-    showToast(
-      state.dragUrl
-        ? message("dragHint")
-        : message("dragPreparing")
-    );
-  });
-  elements.drag.addEventListener("dragstart", (event) => {
-    if (!state.dragUrl) {
-      event.preventDefault();
-      showToast(message("dragPreparing"));
-      return;
-    }
-    event.dataTransfer.effectAllowed = "copy";
-    event.dataTransfer.setData(
-      "DownloadURL",
-      `image/png:${elements.drag.download}:${state.dragUrl}`
-    );
-    event.dataTransfer.setData("text/uri-list", state.dragUrl);
-  });
   elements.export.addEventListener("click", openExportDialog);
   elements.exportFormat.addEventListener("change", updateExportVisibility);
   elements.exportQuality.addEventListener("input", () => {
@@ -1248,7 +1185,6 @@ function setupEventHandlers() {
   });
   addEventListener("unload", () => {
     state.previewObserver?.disconnect();
-    if (state.dragUrl) URL.revokeObjectURL(state.dragUrl);
     for (const source of state.sources) source.bitmap?.close?.();
   });
 }
@@ -1331,11 +1267,6 @@ async function initialize() {
   setTool("select");
   if (session.truncated) {
     showToast(message("captureTruncated"));
-  }
-  if ("requestIdleCallback" in window) {
-    requestIdleCallback(() => scheduleDragPreparation());
-  } else {
-    scheduleDragPreparation();
   }
   if (new URLSearchParams(location.search).get("auto") === "1") {
     await exportWithDefaults();

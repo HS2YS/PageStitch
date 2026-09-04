@@ -11,6 +11,12 @@ function normalizeRect(annotation) {
   };
 }
 
+// The head length drives both the drawn triangle and the dirty rect that
+// bounds it, so the two must read it from the same place.
+function arrowHeadLength(annotation) {
+  return Math.max(12, (annotation.strokeWidth || 4) * 3.2);
+}
+
 export function annotationBounds(annotation) {
   const padding = Math.max(12, annotation.strokeWidth || annotation.size || 0);
   if (annotation.type === "pen" || annotation.type === "highlight") {
@@ -24,11 +30,13 @@ export function annotationBounds(annotation) {
     };
   }
   if (annotation.type === "arrow") {
+    // The head reaches further from the shaft than the stroke width does.
+    const reach = Math.max(padding, arrowHeadLength(annotation));
     return {
-      x: Math.min(annotation.x1, annotation.x2) - padding,
-      y: Math.min(annotation.y1, annotation.y2) - padding,
-      width: Math.abs(annotation.x2 - annotation.x1) + padding * 2,
-      height: Math.abs(annotation.y2 - annotation.y1) + padding * 2
+      x: Math.min(annotation.x1, annotation.x2) - reach,
+      y: Math.min(annotation.y1, annotation.y2) - reach,
+      width: Math.abs(annotation.x2 - annotation.x1) + reach * 2,
+      height: Math.abs(annotation.y2 - annotation.y1) + reach * 2
     };
   }
   if (annotation.type === "text" || annotation.type === "emoji") {
@@ -144,25 +152,30 @@ function drawArrow(context, annotation, offset, scale) {
   const y1 = annotation.y1 * scale;
   const x2 = annotation.x2 * scale;
   const y2 = annotation.y2 * scale;
-  const angle = Math.atan2(y2 - y1, x2 - x1);
-  const headLength = Math.max(12, (annotation.strokeWidth || 4) * 4) * scale;
+  const length = Math.hypot(x2 - x1, y2 - y1);
+  if (length < 0.5) return;
+
+  const strokeWidth = (annotation.strokeWidth || 4) * scale;
+  const headLength = Math.min(arrowHeadLength(annotation) * scale, length * 0.9);
+  // Keep the head visibly wider than the shaft it terminates.
+  const headWidth = Math.max(headLength * 0.5, strokeWidth * 1.5);
+  const unitX = (x2 - x1) / length;
+  const unitY = (y2 - y1) / length;
+  const baseX = x2 - unitX * headLength;
+  const baseY = y2 - unitY * headLength;
 
   context.save();
   setupStroke(context, annotation, offset, scale);
+  // The shaft stops inside the head so its round cap is hidden by the fill
+  // instead of bulging past the tip.
   context.beginPath();
   context.moveTo(x1, y1);
-  context.lineTo(x2, y2);
+  context.lineTo(x2 - unitX * headLength * 0.75, y2 - unitY * headLength * 0.75);
   context.stroke();
   context.beginPath();
   context.moveTo(x2, y2);
-  context.lineTo(
-    x2 - headLength * Math.cos(angle - Math.PI / 6),
-    y2 - headLength * Math.sin(angle - Math.PI / 6)
-  );
-  context.lineTo(
-    x2 - headLength * Math.cos(angle + Math.PI / 6),
-    y2 - headLength * Math.sin(angle + Math.PI / 6)
-  );
+  context.lineTo(baseX - unitY * headWidth, baseY + unitX * headWidth);
+  context.lineTo(baseX + unitY * headWidth, baseY - unitX * headWidth);
   context.closePath();
   context.fill();
   context.restore();

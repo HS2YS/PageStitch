@@ -48,7 +48,6 @@ Use disposable Chrome and Opera profiles if possible. Complete the full checklis
 4. Export PNG, JPEG, A4 portrait PDF, and Letter landscape PDF.
 5. Open each file and verify dimensions, annotations, crop, PDF page count, metadata, and final-page content.
 6. Copy a normal-sized capture to the clipboard.
-7. Drag the editor's **Drag** control to the desktop or file manager.
 
 ## Long-page and library behavior
 

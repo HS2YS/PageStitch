@@ -34,7 +34,6 @@ This document tracks the user-visible capabilities advertised by current full-pa
 | Undo/redo | Implemented | Persistent snapshot history for crop and annotations. |
 | Zoom and fit | Implemented | 5%–200% viewport scaling. |
 | Copy to clipboard | Implemented within canvas limits | Edited PNG is written through `ClipboardItem`. |
-| Drag to desktop/file manager | Implemented within canvas limits | The editor prepares an edited PNG and exposes Chromium's `DownloadURL` drag payload. |
 
 ## Export and library
 

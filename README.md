@@ -19,7 +19,6 @@ PageStitch is a privacy-first Chrome and Opera extension for capturing, editing,
 - PNG, JPEG, and multi-page A4/Letter PDF export
 - Smart PDF page boundaries that look for low-detail horizontal gaps
 - Direct clipboard copy for images within canvas limits
-- Drag-to-desktop PNG for captures within single-canvas limits
 - Auto-download, Save As, Downloads subfolder, and configurable history
 - English and Russian interface
 - Keyboard shortcuts and page context-menu actions
