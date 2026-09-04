@@ -32,7 +32,7 @@ export const CAPTURE_MODE = Object.freeze({
 
 export const DEFAULT_SETTINGS = Object.freeze({
   format: "png",
-  jpegQuality: 0.92,
+  jpegQuality: 1,
   captureDelay: 450,
   fileNameTemplate: "{title}-{date}",
   pdfFormat: "a4",

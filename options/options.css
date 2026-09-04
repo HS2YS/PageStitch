@@ -69,16 +69,6 @@ select:focus-visible {
 .brand strong { font-size: 15px; }
 .brand span { color: var(--muted); font-size: 11px; }
 
-.local-badge {
-  padding: 7px 10px;
-  border: 1px solid #dce9e8;
-  border-radius: 999px;
-  background: #f3fbfa;
-  color: #397774;
-  font-size: 10px;
-  font-weight: 700;
-}
-
 .settings-layout {
   width: min(840px, calc(100% - 48px));
   margin: 34px auto 80px;
@@ -144,6 +134,9 @@ h2 {
 
 .field {
   display: grid;
+  /* Without this a column carrying a <small> hint stretches its neighbour's
+     rows, pushing that control off the shared baseline. */
+  align-content: start;
   gap: 7px;
   color: #4b5365;
   font-size: 11px;

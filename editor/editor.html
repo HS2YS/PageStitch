@@ -33,10 +33,6 @@
         </div>
 
         <div class="header-actions">
-          <a id="drag-button" class="secondary-button drag-button" href="#" draggable="true" aria-disabled="true">
-            <span aria-hidden="true">⠿</span>
-            <span data-i18n="dragToDesktop">Drag</span>
-          </a>
           <button id="copy-button" class="secondary-button" type="button">
             <span aria-hidden="true">▣</span>
             <span data-i18n="copy">Copy</span>
@@ -177,9 +173,11 @@
             </select>
           </label>
           <label id="export-quality-row">
-            <span data-i18n="quality">Quality</span>
-            <input id="export-quality" type="range" min="0.5" max="1" step="0.02" value="0.92">
-            <output id="export-quality-output">92%</output>
+            <span class="row-label">
+              <span data-i18n="quality">Quality</span>
+              <output id="export-quality-output">100%</output>
+            </span>
+            <input id="export-quality" type="range" min="0.5" max="1" step="0.02" value="1">
           </label>
           <label class="pdf-only">
             <span data-i18n="pdfPaper">Paper size</span>
